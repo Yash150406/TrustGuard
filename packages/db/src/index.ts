@@ -4,3 +4,4 @@ export * from "./invites";
 export * from "./tokens";
 export * from "./rate-limit";
 export * from "./intel-cache";
+export * from "./investigations";
