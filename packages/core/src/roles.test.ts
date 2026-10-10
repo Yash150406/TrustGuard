@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { can, isRole } from "./roles";
+import { can, canManageMember, isRole } from "./roles";
 
 test("viewers read but do not create", () => {
   expect(can("viewer", "investigation:read")).toBe(true);
@@ -17,4 +17,16 @@ test("admins invite, only owners delete the org", () => {
 test("isRole", () => {
   expect(isRole("admin")).toBe(true);
   expect(isRole("root")).toBe(false);
+});
+
+test("only admins and owners manage members", () => {
+  expect(canManageMember("analyst", "viewer", "analyst")).toBe(false);
+  expect(canManageMember("admin", "viewer", "analyst")).toBe(true);
+});
+test("only owners can grant the owner role or touch an owner", () => {
+  expect(canManageMember("admin", "analyst", "owner")).toBe(false);
+  expect(canManageMember("admin", "owner", "admin")).toBe(false);
+  expect(canManageMember("admin", "owner")).toBe(false); // removal
+  expect(canManageMember("owner", "analyst", "owner")).toBe(true);
+  expect(canManageMember("owner", "owner", "admin")).toBe(true);
 });
