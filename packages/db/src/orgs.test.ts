@@ -3,7 +3,9 @@ import type { DB } from "./client";
 import { testDb, makeUser } from "./testing";
 import {
   ensurePersonalOrg,
+  getOrg,
   getRole,
+  listMembers,
   listMemberships,
   OrgRuleError,
   removeMember,
@@ -45,4 +47,24 @@ test("an owner can step down once another owner exists", async () => {
   await db.insert(memberships).values({ orgId, userId: b.id, role: "owner" });
   await setMemberRole(db, orgId, a.id, "admin");
   expect(await getRole(db, orgId, a.id)).toBe("admin");
+});
+
+test("listMembers returns names and roles for one org only", async () => {
+  const a = await makeUser(db, "Asha");
+  const b = await makeUser(db, "Ben");
+  const orgId = await ensurePersonalOrg(db, a);
+  await ensurePersonalOrg(db, b);
+  await db.insert(memberships).values({ orgId, userId: b.id, role: "viewer" });
+  const list = await listMembers(db, orgId);
+  expect(list.map((m) => [m.name, m.role])).toEqual([
+    ["Asha", "owner"],
+    ["Ben", "viewer"],
+  ]);
+});
+
+test("getOrg returns the org name", async () => {
+  const a = await makeUser(db, "Asha");
+  const orgId = await ensurePersonalOrg(db, a);
+  expect((await getOrg(db, orgId))?.name).toBe("Asha's org");
+  expect(await getOrg(db, crypto.randomUUID())).toBeNull();
 });

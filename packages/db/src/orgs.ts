@@ -1,12 +1,33 @@
-import { and, count, eq } from "drizzle-orm";
+import { and, asc, count, eq } from "drizzle-orm";
 import type { Role } from "@trustguard/core";
 import type { DB } from "./client";
-import { memberships, orgs } from "./schema";
+import { memberships, orgs, users } from "./schema";
 
 export class OrgRuleError extends Error {}
 
 export async function listMemberships(db: DB, userId: string) {
   return db.select().from(memberships).where(eq(memberships.userId, userId));
+}
+
+export async function getOrg(db: DB, orgId: string) {
+  const [org] = await db.select().from(orgs).where(eq(orgs.id, orgId));
+  return org ?? null;
+}
+
+export async function listMembers(db: DB, orgId: string) {
+  return db
+    .select({
+      userId: memberships.userId,
+      role: memberships.role,
+      joinedAt: memberships.createdAt,
+      name: users.name,
+      email: users.email,
+      image: users.image,
+    })
+    .from(memberships)
+    .innerJoin(users, eq(users.id, memberships.userId))
+    .where(eq(memberships.orgId, orgId))
+    .orderBy(asc(memberships.createdAt));
 }
 
 export async function getRole(db: DB, orgId: string, userId: string): Promise<Role | null> {
