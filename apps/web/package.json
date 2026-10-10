@@ -11,14 +11,17 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@auth/drizzle-adapter": "^1.11.3",
     "@trustguard/core": "workspace:*",
     "@trustguard/db": "workspace:*",
     "next": "16.4.0",
+    "next-auth": "5.0.0-beta.32",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@tailwindcss/turbopack": "^4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
