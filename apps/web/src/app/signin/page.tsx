@@ -12,26 +12,46 @@ export default async function SignIn({ searchParams }: PageProps<"/signin">) {
   const callbackUrl = typeof params.callbackUrl === "string" ? params.callbackUrl : "/";
   const redirectTo = callbackUrl.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/";
 
+  const btn =
+    "w-full rounded-full bg-fg px-5 py-3 text-sm font-semibold text-bg transition-transform duration-300 ease-spring active:scale-[0.98]";
   return (
-    <main>
-      <h1>Sign in to TrustGuard</h1>
-      {error && <p role="alert">{MESSAGES[error] ?? "Sign-in failed. Try again."}</p>}
-      <form
-        action={async () => {
-          "use server";
-          await signIn("github", { redirectTo });
-        }}
-      >
-        <button type="submit">Continue with GitHub</button>
-      </form>
-      <form
-        action={async () => {
-          "use server";
-          await signIn("google", { redirectTo });
-        }}
-      >
-        <button type="submit">Continue with Google</button>
-      </form>
+    <main className="risk-glow grid min-h-dvh place-items-center px-4">
+      <div className="panel-shell w-full max-w-sm">
+        <div className="panel-core grid gap-5 p-7">
+          <div className="grid gap-1">
+            <h1 className="font-display text-2xl font-light">Sign in to TrustGuard</h1>
+            <p className="text-sm text-muted">Investigate suspicious links and domains with your team.</p>
+          </div>
+          {error && (
+            <p role="alert" className="rounded-[var(--radius-chip)] border border-hair px-4 py-3 text-sm text-high">
+              {MESSAGES[error] ?? "Sign-in failed. Try again."}
+            </p>
+          )}
+          <div className="grid gap-2.5">
+            <form
+              action={async () => {
+                "use server";
+                await signIn("github", { redirectTo });
+              }}
+            >
+              <button type="submit" className={btn}>
+                Continue with GitHub
+              </button>
+            </form>
+            <form
+              action={async () => {
+                "use server";
+                await signIn("google", { redirectTo });
+              }}
+            >
+              <button type="submit" className={btn}>
+                Continue with Google
+              </button>
+            </form>
+          </div>
+          <p className="text-xs text-muted">A personal org is created for you on first sign-in.</p>
+        </div>
+      </div>
     </main>
   );
 }

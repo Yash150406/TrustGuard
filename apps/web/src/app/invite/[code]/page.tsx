@@ -42,16 +42,30 @@ export default async function Invite({ params, searchParams }: PageProps<"/invit
 
   const shown = typeof error === "string" && KNOWN_ERRORS.has(error) ? error : null;
   return (
-    <main>
-      <h1>Join an org on TrustGuard</h1>
-      {shown ? (
-        <p role="alert">{shown}</p>
-      ) : (
-        <form action={join}>
-          <p>You were invited to join an org. You&apos;ll be able to switch back to your own org at any time.</p>
-          <button type="submit">Join</button>
-        </form>
-      )}
+    <main className="risk-glow grid min-h-dvh place-items-center px-4">
+      <div className="panel-shell w-full max-w-sm">
+        <div className="panel-core grid gap-4 p-7">
+          <h1 className="font-display text-2xl font-light">Join an org on TrustGuard</h1>
+          {shown ? (
+            <p role="alert" className="text-sm text-high">
+              {shown} Ask whoever sent it for a new link.
+            </p>
+          ) : (
+            <form action={join} className="grid gap-4">
+              <p className="text-sm text-muted">
+                You were invited to join an org. You can switch back to your own org at any time
+                from the menu at the top.
+              </p>
+              <button
+                type="submit"
+                className="rounded-full bg-fg px-5 py-3 text-sm font-semibold text-bg transition-transform duration-300 ease-spring active:scale-[0.98]"
+              >
+                Join
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
     </main>
   );
 }
