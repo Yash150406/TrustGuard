@@ -1,0 +1,27 @@
+node_modules/
+.pnpm-store/
+
+# builds
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+*.zip
+
+# env and secrets
+.env
+.env.*
+!.env.example
+
+# test output
+coverage/
+playwright-report/
+test-results/
+
+# os and editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
