@@ -14,6 +14,15 @@ export async function getOrg(db: DB, orgId: string) {
   return org ?? null;
 }
 
+export async function listMyOrgs(db: DB, userId: string) {
+  return db
+    .select({ orgId: orgs.id, name: orgs.name, role: memberships.role })
+    .from(memberships)
+    .innerJoin(orgs, eq(orgs.id, memberships.orgId))
+    .where(eq(memberships.userId, userId))
+    .orderBy(asc(memberships.createdAt));
+}
+
 export async function listMembers(db: DB, orgId: string) {
   return db
     .select({

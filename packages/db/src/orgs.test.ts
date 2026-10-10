@@ -6,6 +6,7 @@ import {
   getOrg,
   getRole,
   listMembers,
+  listMyOrgs,
   listMemberships,
   OrgRuleError,
   removeMember,
@@ -67,4 +68,17 @@ test("getOrg returns the org name", async () => {
   const orgId = await ensurePersonalOrg(db, a);
   expect((await getOrg(db, orgId))?.name).toBe("Asha's org");
   expect(await getOrg(db, crypto.randomUUID())).toBeNull();
+});
+
+test("listMyOrgs returns every org a user belongs to with their role", async () => {
+  const a = await makeUser(db, "Asha");
+  const b = await makeUser(db, "Ben");
+  const own = await ensurePersonalOrg(db, a);
+  const team = await ensurePersonalOrg(db, b);
+  await db.insert(memberships).values({ orgId: team, userId: a.id, role: "analyst" });
+  const mine = await listMyOrgs(db, a.id);
+  expect(mine).toEqual([
+    { orgId: own, name: "Asha's org", role: "owner" },
+    { orgId: team, name: "Ben's org", role: "analyst" },
+  ]);
 });
