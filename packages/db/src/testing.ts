@@ -6,10 +6,22 @@ import type { DB } from "./client";
 import * as schema from "./schema";
 import { users } from "./schema";
 
+// Migrate once per test worker, then hand each test its own clone. Replaying the
+// migration for every test was slow enough to hit timeouts under parallel runs.
+let template: Promise<PGlite> | undefined;
+
+async function migratedTemplate() {
+  const pg = new PGlite();
+  await migrate(drizzle(pg, { schema }), {
+    migrationsFolder: fileURLToPath(new URL("../drizzle", import.meta.url)),
+  });
+  return pg;
+}
+
 export async function testDb(): Promise<DB> {
-  const db = drizzle(new PGlite(), { schema });
-  await migrate(db, { migrationsFolder: fileURLToPath(new URL("../drizzle", import.meta.url)) });
-  return db as unknown as DB;
+  template ??= migratedTemplate();
+  const pg = (await (await template).clone()) as PGlite;
+  return drizzle(pg, { schema }) as unknown as DB;
 }
 
 export async function makeUser(db: DB, name = "Test User") {
