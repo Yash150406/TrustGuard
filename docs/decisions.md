@@ -49,3 +49,16 @@ One entry per non-obvious decision, written when it is made.
 
 **Decided:** `docs/plans/` gets one plan per roadmap phase, written just before that phase starts.
 **Why:** later phases depend on code that doesn't exist yet. Writing their exact code now would go stale.
+
+## 2026-10-12: Design directions
+
+**Decided:** direction C ("Signal room", dark glass panels with a risk-tinted glow) for the app and website, direction B ("Analyst report", findings document) for PDF reports.
+**Why:** owner's pick from three previews of the same investigation. C gives the product a distinct look; B reads well for people outside security and suits a printable report.
+**Alternatives:** A ("Case file", dense dark workbench) was recommended for scan speed but not chosen.
+
+## 2026-10-12: Investigation assistant (RAG) added as phase 11
+
+**Decided:** add an "Ask about this result" assistant that answers questions from an investigation's own evidence, with citations. Design is approved now; it is built after phase 10.
+**Why:** owner request. People want to ask follow-up questions in plain language.
+**What changes:** this narrows the earlier "no LLM" decision. The score explanation stays template-based and reproducible. The assistant is a separate Q&A layer that must cite evidence, refuse when evidence is missing, stay inside the org's data and cost $0.
+**Open:** model and embedding provider, chosen at the start of phase 11 from free options.

@@ -181,7 +181,7 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px }
 // Items verified done. Edited by hand when an item's verification passes.
 const DONE = new Set([
   "P0.01", "P0.02", "P0.03", "P0.04", "P0.05", "P0.06", "P0.07",
-  "P1.01", "P1.02", "P1.06", "P1.10", "P1.11", "P1.12", "P1.15", "P1.16", "P1.18"
+  "P1.01", "P1.02", "P1.06", "P1.10", "P1.11", "P1.12", "P1.15", "P1.16", "P1.18", "P1.20"
 ]);
 
 // [id, title, verification, ref, ownerAction]
@@ -221,7 +221,7 @@ const GROUPS = [
   ["P1.17", "Security headers and CSP on the web app", "Response headers checked in tests and on the deployed site"],
   ["P1.18", "Vitest set up across packages", "pnpm test runs every package"],
   ["P1.19", "CI: lint, typecheck, test, build, gitleaks on every push", "Green GitHub Actions run on main"],
-  ["P1.20", "UI direction set through the design pass and approved", "Owner approves the direction from real previews before screens are built", "", 1],
+  ["P1.20", "UI direction set through the design pass and approved", "Owner chose direction C (Signal room) for the app and B (Analyst report) for PDFs on 2026-10-12", "", 1],
   ["P1.21", "Deployed skeleton on Vercel", "trustguard.vercel.app (or chosen name) serves the signed-in shell"]
  ]},
  { id: "P2", name: "Scanner, reputation and scoring", sub: "Local URL checks, external reputation, domain age, the risk engine and the job pipeline.", items: [
@@ -415,6 +415,7 @@ const GROUPS = [
   ["P9.14", "Integrity-not-authorship note shown", "Visible on viewer and verify page", "§10"]
  ]},
  { id: "P10", name: "Reports, polish, hardening and launch", sub: "The finished product, documented, tested and deployed.", items: [
+  ["P10.00", "PDF report uses the approved analyst report layout (direction B)", "Owner review of a generated PDF", "", 1],
   ["P10.01", "PDF: executive summary", "Generated PDF", "5.26"],
   ["P10.02", "PDF: threat score and confidence", "Generated PDF", "5.26"],
   ["P10.03", "PDF: URL and domain intelligence", "Generated PDF", "5.26"],
@@ -440,6 +441,20 @@ const GROUPS = [
   ["P10.23", "docs/testing-and-hardening.md", "Present and current"],
   ["P10.24", "docs/decisions.md and docs/HANDOFF.md current", "Reviewed at release"],
   ["P10.25", "v1.0.0 tagged and released", "Release page live with extension zip"]
+ ]},
+ { id: "P11", name: "Investigation assistant (RAG)", sub: "Ask follow-up questions about an investigation and get answers built only from its evidence. Design approved with direction C; built after phase 10.", items: [
+  ["P11.01", "Free model and embedding provider chosen and logged", "Entry in docs/decisions.md; $0 confirmed"],
+  ["P11.02", "pgvector enabled on Supabase with an embeddings table", "Migration applies; free-tier limits respected"],
+  ["P11.03", "Investigation evidence chunked and embedded when an investigation completes", "Chunks exist for a finished investigation"],
+  ["P11.04", "Retrieval limited to the asking org's data", "Isolation test: org B never retrieves org A chunks"],
+  ["P11.05", "Answers cite the source of every claim", "Each answer sentence maps to a source chip"],
+  ["P11.06", "Says it doesn't know when evidence doesn't cover the question", "Test question outside the evidence gets a refusal, not a guess"],
+  ["P11.07", "Never invents intelligence results", "Eval set of questions checked against stored evidence"],
+  ["P11.08", "Per-user daily question quota", "Quota test"],
+  ["P11.09", "Shown as unavailable when the model or quota is exhausted", "Fault-injection test"],
+  ["P11.10", "Ask about this result panel built to the approved design", "Owner review in light and dark", "", 1],
+  ["P11.11", "Suggested questions based on the investigation's signals", "Suggestions change with the evidence"],
+  ["P11.12", "Assistant documented", "docs/architecture.md section with data flow and limits"]
  ]},
  { id: "DoD", name: "Definition of Done", sub: "The release gate from the product summary. All twelve must pass on the deployed system.", items: [
   ["D.01", "All core modules run through one investigation workflow", "End-to-end run touches every source", "§16"],
