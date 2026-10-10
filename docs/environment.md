@@ -15,6 +15,8 @@ Local values go in `apps/web/.env.local`. That file is gitignored. Never commit 
 | `AUTH_GOOGLE_ID` | web | Google Cloud OAuth client, Client ID |
 | `AUTH_GOOGLE_SECRET` | web | Google Cloud OAuth client, Client secret |
 
+| `AUTH_TRUST_HOST` | web, self-hosted only | Set to `true` when running `next start` outside Vercel. Vercel and `next dev` don't need it. Don't set it anywhere the `Host` header can be spoofed. |
+
 Worker variables (VirusTotal, Safe Browsing and URLhaus keys) are added in phase 2.
 
 ## 1. Supabase (database)
