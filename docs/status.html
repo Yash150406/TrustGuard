@@ -1,0 +1,528 @@
+<title>TrustGuard Ground Truth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,600..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column, a pinned progress header, phases as collapsible ledgers of checklist rows */
+:root {
+  --bg: #EDF0F4;
+  --surface: #FFFFFF;
+  --ink: #142030;
+  --muted: #586678;
+  --line: #D3DAE3;
+  --accent: #2348B5;
+  --done: #1E7448;
+  --done-bg: #E3F2EA;
+  --safe: #1E7448;
+  --warn: #A3610A;
+  --high: #B42828;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0D131B; --surface: #141C27; --ink: #E2E8F0; --muted: #8B98A9; --line: #243041;
+  --accent: #93AAFF; --done: #52C48C; --done-bg: #15291F; --safe: #52C48C; --warn: #E5A345; --high: #F07070;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0D131B; --surface: #141C27; --ink: #E2E8F0; --muted: #8B98A9; --line: #243041;
+  --accent: #93AAFF; --done: #52C48C; --done-bg: #15291F; --safe: #52C48C; --warn: #E5A345; --high: #F07070;
+  color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); padding-inline: 16px; padding-block: 0 64px }
+.wrap { max-width: 980px; margin: 0 auto }
+h1, h2, h3 { font-family: var(--display); font-stretch: 87%; text-wrap: balance; margin: 0; line-height: 1.1 }
+a { color: var(--accent) }
+code, .mono { font-family: var(--mono); font-size: .86em }
+
+header.top { padding-block: 40px 20px; display: grid; gap: 14px }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+h1 { font-size: clamp(34px, 6vw, 54px); font-weight: 800 }
+.lede { max-width: 66ch; color: var(--muted); margin: 0 }
+
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 12px; border-bottom: 1px solid var(--line); display: grid; gap: 10px }
+.barrow { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between }
+.pct { font: 800 30px/1 var(--display); font-stretch: 87%; font-variant-numeric: tabular-nums }
+.pct small { font: 500 13px var(--body); color: var(--muted); margin-left: 8px }
+.track { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden }
+.fill { height: 100%; background: var(--done); width: 0 }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.controls input[type=search] { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); width: 220px; max-width: 100% }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden }
+.seg button { font: 500 13px var(--body); padding: 6px 12px; border: 0; background: var(--surface); color: var(--muted); cursor: pointer }
+.seg button[aria-pressed=true] { background: var(--ink); color: var(--bg) }
+button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+section.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; margin-block: 28px }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; min-width: 0 }
+.fact h3 { font-size: 18px; font-weight: 700 }
+.fact p { margin: 0; color: var(--muted); font-size: 14px }
+.bands { display: grid; gap: 6px; font-size: 14px }
+.band { display: grid; grid-template-columns: 74px 1fr; gap: 10px; align-items: baseline }
+.band b { font: 500 13px var(--mono); font-variant-numeric: tabular-nums }
+.chip { display: inline-block; font: 600 11px/1 var(--mono); letter-spacing: .06em; padding: 4px 7px; border-radius: 4px; border: 1px solid currentColor }
+.c-safe { color: var(--safe) } .c-warn { color: var(--warn) } .c-high { color: var(--high) }
+
+details.group { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; margin-block: 14px; overflow: hidden }
+details.group > summary { list-style: none; cursor: pointer; padding: 16px 18px; display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: center }
+details.group > summary::-webkit-details-marker { display: none }
+.gtitle { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; min-width: 0 }
+.gid { font: 500 13px var(--mono); color: var(--accent) }
+.gtitle h2 { font-size: 21px; font-weight: 700 }
+.gsub { grid-column: 1 / -1; color: var(--muted); font-size: 14px; max-width: 70ch }
+.gcount { font: 500 13px var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; white-space: nowrap }
+.gcount .mini { display: block; width: 90px; height: 4px; background: var(--line); border-radius: 2px; margin-top: 6px; margin-left: auto; overflow: hidden }
+.gcount .mini i { display: block; height: 100%; background: var(--done) }
+details.group[data-complete] .gcount { color: var(--done) }
+
+ol.items { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line) }
+li.item { display: grid; grid-template-columns: 22px 70px 1fr; gap: 4px 12px; padding: 11px 18px; border-top: 1px solid var(--line) }
+li.item:first-child { border-top: 0 }
+.box { width: 16px; height: 16px; margin-top: 3px; border: 1.5px solid var(--muted); border-radius: 3px; display: grid; place-items: center }
+li.item.done .box { background: var(--done); border-color: var(--done) }
+li.item.done .box::after { content: ""; width: 8px; height: 4px; border: solid var(--surface); border-width: 0 0 2px 2px; transform: translateY(-1px) rotate(-45deg) }
+.iid { font: 500 12.5px/1.9 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums }
+.itext { min-width: 0 }
+.ititle { font-weight: 500 }
+li.item.done .ititle { color: var(--muted) }
+.iverify { color: var(--muted); font-size: 13.5px; margin-top: 2px }
+.iverify::before { content: "Verify: "; font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--accent) }
+.iref { font: 500 11.5px var(--mono); color: var(--muted); margin-left: 6px; white-space: nowrap }
+.owner { font: 600 10.5px/1 var(--mono); letter-spacing: .05em; color: var(--warn); border: 1px solid currentColor; border-radius: 3px; padding: 2px 5px; margin-left: 6px; white-space: nowrap; vertical-align: 1px }
+
+.tablewrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 640px }
+th, td { text-align: left; padding: 9px 14px; border-top: 1px solid var(--line); vertical-align: top }
+th { font: 600 11.5px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-top: 0 }
+td.n { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap }
+h2.sect { font-size: 26px; font-weight: 800; margin-block: 44px 6px }
+p.sectsub { color: var(--muted); margin: 0 0 14px; max-width: 70ch }
+.empty { padding: 18px; color: var(--muted) }
+footer { margin-top: 40px; color: var(--muted); font-size: 13px }
+@media (max-width: 560px) {
+  li.item { grid-template-columns: 22px 1fr; }
+  .iid { grid-column: 2; line-height: 1.2 }
+  .itext { grid-column: 2 }
+  .controls input[type=search] { width: 100% }
+}
+@media (prefers-reduced-motion: no-preference) { .fill, .mini i { transition: width .4s ease } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Investigate · Correlate · Explain · Protect</div>
+    <h1>TrustGuard Ground Truth</h1>
+    <p class="lede">Every task, feature, gate and deliverable for TrustGuard V1, each with how it gets verified. An item is checked only after its verification has passed. The project is complete at 100%, and not before.</p>
+  </header>
+
+  <div class="bar">
+    <div class="barrow">
+      <div class="pct" id="pct">0%<small id="pctsub"></small></div>
+      <div class="controls">
+        <input type="search" id="q" placeholder="Filter items" aria-label="Filter items">
+        <div class="seg" role="group" aria-label="Show">
+          <button type="button" data-show="all" aria-pressed="true">All</button>
+          <button type="button" data-show="open" aria-pressed="false">Open</button>
+          <button type="button" data-show="done" aria-pressed="false">Done</button>
+        </div>
+      </div>
+    </div>
+    <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
+  </div>
+
+  <section class="facts" aria-label="Project facts">
+    <div class="fact">
+      <h3>Risk bands</h3>
+      <div class="bands">
+        <div class="band"><b>0-39</b><span><span class="chip c-safe">SAFE</span> no significant signals, not a guarantee</span></div>
+        <div class="band"><b>40-69</b><span><span class="chip c-warn">SUSPICIOUS</span> meaningful indicators</span></div>
+        <div class="band"><b>70-100</b><span><span class="chip c-high">HIGH RISK</span> avoid interaction</span></div>
+      </div>
+      <p>Confidence is scored separately. Unavailable data is never read as safe.</p>
+    </div>
+    <div class="fact">
+      <h3>Stack</h3>
+      <p>Next.js 16 + TypeScript + Tailwind on Vercel Hobby. Supabase Postgres, Storage and pg-boss queue. Worker with Playwright and tesseract on an Oracle Always Free ARM VM. MV3 extension on Edge Add-ons. Shared deterministic <code>core</code> package.</p>
+    </div>
+    <div class="fact">
+      <h3>Hard constraints</h3>
+      <p>$0 budget, no exceptions. Multi-tenant orgs. No API keys outside the worker. No sensitive form values ever read. No fabricated intelligence. Identifiers like <code>TG-ART-2026-000001</code> and <code>TG-INC-2026-000001</code>.</p>
+    </div>
+  </section>
+
+  <div id="groups"></div>
+
+  <h2 class="sect">$0 budget ledger</h2>
+  <p class="sectsub">Every external service the project depends on, and the free limit it has to live within.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Service</th><th>Used for</th><th>Free limit to respect</th></tr></thead>
+      <tbody>
+        <tr><td>Vercel Hobby</td><td>Web app, API routes, previews</td><td>Non-commercial use, function time and bandwidth caps</td></tr>
+        <tr><td>Supabase Free</td><td>Postgres, job queue, file storage</td><td class="n">500 MB DB · 1 GB storage · pauses after 7 idle days</td></tr>
+        <tr><td>Oracle Cloud Always Free</td><td>Analysis worker VM</td><td>Ampere A1 up to 4 OCPU / 24 GB. Card for verification only. Idle VMs can be reclaimed</td></tr>
+        <tr><td>GitHub (public repo)</td><td>Code, Actions CI, GHCR images, releases</td><td>Free for public repositories</td></tr>
+        <tr><td>VirusTotal public API</td><td>Reputation</td><td class="n">4/min · 500/day · non-commercial</td></tr>
+        <tr><td>Google Safe Browsing v4</td><td>Reputation, extension auto-scans</td><td class="n">10,000/day · non-commercial</td></tr>
+        <tr><td>URLhaus (abuse.ch)</td><td>Malware URL reputation</td><td>Free auth key, fair use</td></tr>
+        <tr><td>RDAP, crt.sh, Team Cymru</td><td>Domain registration, certificate history, ASN</td><td>Keyless, fair use, cached</td></tr>
+        <tr><td>GitHub and Google OAuth</td><td>Sign-in</td><td>Free</td></tr>
+        <tr><td>Microsoft Edge Add-ons</td><td>Extension distribution</td><td>Free developer registration</td></tr>
+        <tr><td>Discord / Slack webhooks</td><td>Monitoring alerts</td><td>Free</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>Source of truth for scope: <code>docs/specs/2026-10-11-trustguard-design.md</code>. Last updated <span class="mono">2026-10-11</span>.</footer>
+</div>
+
+<script>
+// Items verified done. Edited by hand when an item's verification passes.
+const DONE = new Set(["P0.01", "P0.02", "P0.03", "P0.04", "P0.07"]);
+
+// [id, title, verification, ref, ownerAction]
+const GROUPS = [
+ { id: "P0", name: "Project setup", sub: "Accounts, repo, spec and the free-tier services everything else depends on.", items: [
+  ["P0.01", "Public repo Yash150406/TrustGuard created", "gh repo view Yash150406/TrustGuard shows public"],
+  ["P0.02", "Repo-local git identity set to Yash More", "git config --local user.name / user.email"],
+  ["P0.03", "Local tool and reference files kept out of git", "git status --ignored lists them, git ls-files does not"],
+  ["P0.04", "Design spec written", "docs/specs/2026-10-11-trustguard-design.md exists"],
+  ["P0.05", "Design spec reviewed and approved by owner", "Owner sign-off recorded in docs/decisions.md", "", 1],
+  ["P0.06", "Implementation plan written from the approved spec", "docs/plans/ file covers phases 1-10 with tasks"],
+  ["P0.07", "Ground truth page published", "This page is live and matches the spec"],
+  ["P0.08", "Oracle Cloud Always Free account and ARM VM provisioned", "SSH into the VM works, billing shows Always Free only", "", 1],
+  ["P0.09", "Supabase project created", "Project dashboard reachable, connection string stored privately", "", 1],
+  ["P0.10", "Vercel project linked to the repo", "Push to main triggers a deploy", "", 1],
+  ["P0.11", "VirusTotal, Safe Browsing and URLhaus keys obtained", "Each key returns a valid response from a test call on the worker", "", 1],
+  ["P0.12", "GitHub and Google OAuth apps created", "Client ids and secrets set in Vercel env, sign-in round trip works", "", 1],
+  ["P0.13", "Microsoft Partner Center account for Edge Add-ons", "Developer dashboard reachable, no fee charged", "", 1]
+ ]},
+ { id: "P1", name: "Foundation", sub: "Monorepo, contracts, schema, auth, orgs, CI and the visual direction.", items: [
+  ["P1.01", "pnpm workspace with apps/web, apps/worker, apps/extension, packages/core", "pnpm -r build succeeds"],
+  ["P1.02", "Strict TypeScript, ESLint and Prettier shared across packages", "pnpm lint and pnpm typecheck pass with zero errors"],
+  ["P1.03", "Shared types in core: Investigation, SourceResult, Signal, Evidence, Snapshot", "Imported by web, worker and extension without duplication"],
+  ["P1.04", "zod schemas for every API request and response", "Invalid payloads rejected with 400 in tests"],
+  ["P1.05", "API contract documented", "docs/architecture.md lists every route, method, input and output"],
+  ["P1.06", "Env config validated at startup for web and worker", "Missing var fails fast with a clear message; .env.example committed"],
+  ["P1.07", "Drizzle schema and migrations for all tables", "Migrations apply cleanly to a fresh Supabase database"],
+  ["P1.08", "Auth.js sign-in with GitHub and Google", "Both providers sign in and out on the deployed app"],
+  ["P1.09", "Personal org created on first sign-in", "New user lands in their own org"],
+  ["P1.10", "Roles: owner, admin, analyst, viewer", "Permission tests per role pass"],
+  ["P1.11", "Invite links to join an org", "Invited user joins with the chosen role; expired links refused"],
+  ["P1.12", "Org-scoped data access layer", "Cross-org read and write attempts fail in tests"],
+  ["P1.13", "Per-user API tokens, stored hashed, revocable", "Revoked token gets 401; DB holds only hashes"],
+  ["P1.14", "DB-backed rate limiter", "Burst over limit returns 429 in tests"],
+  ["P1.15", "Shared intel cache keyed by source and target", "Second lookup within TTL makes no outbound call"],
+  ["P1.16", "Error sanitizing so secrets never reach clients", "Test forces an upstream error containing a key; response omits it"],
+  ["P1.17", "Security headers and CSP on the web app", "Response headers checked in tests and on the deployed site"],
+  ["P1.18", "Vitest set up across packages", "pnpm test runs every package"],
+  ["P1.19", "CI: lint, typecheck, test, build, gitleaks on every push", "Green GitHub Actions run on main"],
+  ["P1.20", "UI direction set through the design pass and approved", "Owner approves the direction from real previews before screens are built", "", 1],
+  ["P1.21", "Deployed skeleton on Vercel", "trustguard.vercel.app (or chosen name) serves the signed-in shell"]
+ ]},
+ { id: "P2", name: "Scanner, reputation and scoring", sub: "Local URL checks, external reputation, domain age, the risk engine and the job pipeline.", items: [
+  ["P2.01", "HTTP vs HTTPS detection", "Unit tests", "5.1"],
+  ["P2.02", "IP-based URL detection (v4 and v6)", "Unit tests", "5.1"],
+  ["P2.03", "@ redirect trick detection", "Unit tests", "5.1"],
+  ["P2.04", "Excessive subdomain detection", "Unit tests", "5.1"],
+  ["P2.05", "Suspicious and phishing keyword detection", "Unit tests", "5.1"],
+  ["P2.06", "URL length and structure analysis", "Unit tests", "5.1"],
+  ["P2.07", "URL entropy analysis", "Unit tests with known values", "5.1"],
+  ["P2.08", "Suspicious TLD detection", "Unit tests", "5.1"],
+  ["P2.09", "Encoded character and obfuscation checks", "Unit tests", "5.1"],
+  ["P2.10", "Punycode and homograph indicators", "Unit tests with mixed-script samples", "5.1"],
+  ["P2.11", "Suspicious ports and parameters", "Unit tests", "5.1"],
+  ["P2.12", "Shortened URL detection", "Unit tests", "5.1"],
+  ["P2.13", "VirusTotal URL submission and analysis", "Fixture test plus one live call on the worker", "5.2"],
+  ["P2.14", "VirusTotal malicious / suspicious / harmless / undetected stats", "Stored and shown on the investigation", "5.2"],
+  ["P2.15", "Polling until VirusTotal analysis completes", "Fixture test of queued then completed", "5.2"],
+  ["P2.16", "VirusTotal failures and quota shown as unavailable", "Fixture tests for 429, 5xx, timeout", "5.2"],
+  ["P2.17", "VirusTotal treated as one source, never the verdict", "Scoring test: VT clean plus strong local signals still scores high", "5.2"],
+  ["P2.18", "Global VirusTotal budget under 4/min and 500/day", "Limiter test; counter visible on admin page"],
+  ["P2.19", "Google Safe Browsing lookup", "Fixture test plus Google's test URL live"],
+  ["P2.20", "URLhaus lookup", "Fixture test plus one live call"],
+  ["P2.21", "RDAP: registration date, domain age, registrar, expiry, name servers", "Fixture tests for several TLDs", "5.3"],
+  ["P2.22", "IP and hosting info where available", "Shown with source, or marked unavailable", "5.3"],
+  ["P2.23", "New and young domain risk signal", "Unit test on age thresholds", "5.3"],
+  ["P2.24", "Risk engine: signals, per-category caps, clamp 0-100", "Unit tests", "5.14"],
+  ["P2.25", "Floors: Safe Browsing, URLhaus or 3+ VT engines give 70 or more", "Unit tests", "5.14"],
+  ["P2.26", "HTTPS never lowers risk; low VT alone never gives SAFE", "Unit tests", "§6"],
+  ["P2.27", "Levels SAFE / SUSPICIOUS / HIGH RISK at 39 / 69 boundaries", "Boundary tests at 39, 40, 69, 70", "5.14"],
+  ["P2.28", "Positive and negative signals in the weighted model", "Unit tests", "5.14"],
+  ["P2.29", "Versioned points table stored with each result", "scoringVersion present on every investigation"],
+  ["P2.30", "Same evidence and version always give the same score", "Determinism test over a fixture set", "DoD"],
+  ["P2.31", "pg-boss queue on Supabase; worker consumes jobs", "Job created by the API completes on the worker"],
+  ["P2.32", "Source runner with per-source timeout and ok / unavailable / error status", "Fixture test where one source hangs; investigation still completes"],
+  ["P2.33", "Investigation API: create, get, poll", "API tests"],
+  ["P2.34", "Per-user daily quota, cache hits free", "Quota test; 21st full run refused with a clear message"],
+  ["P2.35", "Worker Docker image for ARM", "Image builds in CI and runs on the VM"]
+ ]},
+ { id: "P3", name: "DNS, TLS and redirects", sub: "Infrastructure intelligence and safe redirect following.", items: [
+  ["P3.01", "DNS A, AAAA, MX, NS, TXT and CNAME records", "Fixture tests and one live domain", "5.4"],
+  ["P3.02", "DNS relationship discovery", "Related hosts appear as entities", "5.4"],
+  ["P3.03", "Suspicious infrastructure indicators from DNS", "Unit tests", "5.4"],
+  ["P3.04", "ASN and hosting via Team Cymru DNS", "Fixture test"],
+  ["P3.05", "Certificate issuer", "Fixture test", "5.5"],
+  ["P3.06", "Certificate validity period and expiry", "Fixture test", "5.5"],
+  ["P3.07", "Hostname and SAN matching", "Mismatch fixture flagged", "5.5"],
+  ["P3.08", "Certificate age", "Unit test", "5.5"],
+  ["P3.09", "TLS protocol and cipher indicators", "Fixture test", "5.5"],
+  ["P3.10", "Certificate anomaly signals", "Unit tests", "5.5"],
+  ["P3.11", "crt.sh related certificates and domains", "Fixture test"],
+  ["P3.12", "Redirects followed in the isolated worker", "Runs only on the worker", "5.6"],
+  ["P3.13", "Every redirect hop recorded with status and host", "Multi-hop fixture", "5.6"],
+  ["P3.14", "JS and meta-refresh redirects captured", "Local test pages"],
+  ["P3.15", "Suspicious intermediate domains flagged", "Unit test", "5.6"],
+  ["P3.16", "Risk compared before and after redirects", "Shown on the investigation", "5.6"],
+  ["P3.17", "SSRF guard on every hop and sub-resource", "Tests: private, loopback, link-local and 169.254.169.254 refused", "§9"]
+ ]},
+ { id: "P4", name: "Page behavior, phishing and visual analysis", sub: "What the page does when loaded in the sandbox, and what it looks like.", items: [
+  ["P4.01", "Login and password field detection", "Local test pages", "5.7"],
+  ["P4.02", "Form destinations recorded", "Test pages with cross-domain actions", "5.7"],
+  ["P4.03", "External scripts and iframes listed", "Test page", "5.7"],
+  ["P4.04", "Download behavior detected", "Test page triggering a download", "5.7"],
+  ["P4.05", "Popup behavior detected", "Test page using window.open", "5.7"],
+  ["P4.06", "Clipboard API use detected where observable", "Test page", "5.7"],
+  ["P4.07", "Camera, microphone and geolocation requests detected", "Test page", "5.7"],
+  ["P4.08", "Suspicious or obfuscated JavaScript indicators", "Test pages using eval, atob, packed strings", "5.7"],
+  ["P4.09", "Urgency and account-verification language", "Unit tests", "5.8"],
+  ["P4.10", "Credential harvesting indicators", "Unit tests", "5.8"],
+  ["P4.11", "Brand impersonation signals from a curated list of about 200 brands", "Brand list in repo with official domains", "5.8"],
+  ["P4.12", "Suspicious login-page patterns", "Unit tests", "5.8"],
+  ["P4.13", "Domain and brand mismatch", "Unit tests", "5.8"],
+  ["P4.14", "Screenshot capture and storage", "Screenshot shown on the investigation"],
+  ["P4.15", "OCR text extraction with tesseract", "Fixture image test", "5.9"],
+  ["P4.16", "Brand detection from page text and OCR", "Fixture test", "5.9"],
+  ["P4.17", "Login-form detection in visual analysis", "Fixture test", "5.9"],
+  ["P4.18", "Visual phishing indicators", "Unit tests", "5.9"],
+  ["P4.19", "Perceptual-hash similarity against brand reference set", "Reference set in repo; similar page scores high", "5.9"],
+  ["P4.20", "Visual phishing probability, documented as a heuristic", "Formula in docs; value shown with label", "5.9"],
+  ["P4.21", "Sandbox: fresh context per job, non-root, read-only fs, CPU and memory caps", "docker inspect and compose file reviewed", "§9"],
+  ["P4.22", "Jobs killed after 45 seconds", "Test page that never finishes"],
+  ["P4.23", "Downloaded files never executed; only name, size, SHA-256 kept", "Test confirms file deleted after hashing", "§9"],
+  ["P4.24", "Screenshots kept 30 days unless referenced", "Retention job test"]
+ ]},
+ { id: "P5", name: "DNA, correlation, confidence and explanations", sub: "Turning raw evidence into an assessment people can understand and act on.", items: [
+  ["P5.01", "URL DNA tag string in fixed order", "Unit tests", "5.10"],
+  ["P5.02", "Protocol and infrastructure tags", "Unit tests", "5.10"],
+  ["P5.03", "Redirect, new-domain, phishing, IP and entropy tags", "Unit tests", "5.10"],
+  ["P5.04", "Deterministic DNA color strip for analysts and reports", "Same DNA gives same strip", "5.10"],
+  ["P5.05", "DNA versioned", "dnaVersion stored"],
+  ["P5.06", "Cross-source evidence correlation grouped by entity", "Investigation shows grouped evidence", "5.11"],
+  ["P5.07", "Domain, IP, certificate and DNS relationships combined", "Entities and edges written", "5.11"],
+  ["P5.08", "All signal families combined: local, reputation, domain, DNS, TLS, redirect, page, visual", "Fixture with every source feeds one result", "5.11"],
+  ["P5.09", "Corroborating and conflicting indicators highlighted", "UI shows both", "5.11"],
+  ["P5.10", "Confidence from source coverage and agreement, separate from risk", "Unit tests", "5.14"],
+  ["P5.11", "Conflicts lower confidence and are named", "Unit test"],
+  ["P5.12", "Why the site got its score", "Explanation shown on every investigation", "5.15"],
+  ["P5.13", "Individual score contributions listed", "Contributions add up to the score", "5.15"],
+  ["P5.14", "Conflicting evidence explained", "Fixture with conflict", "5.15"],
+  ["P5.15", "Readable analyst reasoning from templates over real signals", "No text without a backing signal", "5.15"],
+  ["P5.16", "Financial exposure: configurable per org", "Org settings page saves values", "5.16"],
+  ["P5.17", "Credential compromise impact", "Shown in the estimate", "5.16"],
+  ["P5.18", "Payment fraud exposure", "Shown in the estimate", "5.16"],
+  ["P5.19", "Business impact range", "Low-high range shown", "5.16"],
+  ["P5.20", "Estimates clearly labeled as estimates", "Label visible in UI and report", "5.16"],
+  ["P5.21", "User safety recommendations", "Rule tests", "5.17"],
+  ["P5.22", "Credential entry warnings", "Rule tests", "5.17"],
+  ["P5.23", "Download warnings", "Rule tests", "5.17"],
+  ["P5.24", "Org actions: block, investigate, watchlist", "Buttons act on the investigation", "5.17"],
+  ["P5.25", "Every recommendation linked to its evidence", "UI link to source signal", "5.17"]
+ ]},
+ { id: "P6", name: "Threat graph and campaigns", sub: "Infrastructure relationships and phishing campaign similarity.", items: [
+  ["P6.01", "Entities for domains, IPs, certificates, ASNs, DNS records, redirects, related domains", "Graph data from a full investigation", "5.12"],
+  ["P6.02", "Edges RESOLVES_TO, REDIRECTS_TO, HOSTED_ON, USES_CERTIFICATE, RELATED_TO", "Each type appears in a fixture graph", "5.12"],
+  ["P6.03", "Edges SHARES_FAVICON and SHARES_SCRIPT", "Fixture graph"],
+  ["P6.04", "Interactive Cytoscape.js graph", "Pan, zoom, layout on the investigation page", "5.12"],
+  ["P6.05", "Clickable nodes with intelligence and linked investigations", "Side panel opens with data", "5.12"],
+  ["P6.06", "Shared infrastructure comparison between domains", "Fixture pair", "5.13"],
+  ["P6.07", "Favicon, HTML structure and visual similarity", "Fixture pair", "5.13"],
+  ["P6.08", "Shared scripts and certificate patterns", "Fixture pair", "5.13"],
+  ["P6.09", "Campaign similarity score 0-100", "Unit tests", "5.13"],
+  ["P6.10", "Related-domain discovery", "Related domains listed", "5.13"],
+  ["P6.11", "Campaign matching stays inside the org plus brand references", "Isolation test"]
+ ]},
+ { id: "P7", name: "Browser extension", sub: "Chromium MV3 extension using the backend as its engine.", items: [
+  ["P7.01", "MV3 extension built with esbuild", "Loads unpacked in Edge and Chrome with no errors"],
+  ["P7.02", "Token pairing from the dashboard", "Sign in once, extension receives the token"],
+  ["P7.03", "Automatic current-page scan", "Badge updates on navigation", "5.21"],
+  ["P7.04", "Green / orange / red risk badge", "Manual check on three test URLs", "§11"],
+  ["P7.05", "Popup: score, confidence, top 3 reasons, DNA strip", "Manual check", "§11"],
+  ["P7.06", "Popup: open full investigation", "Opens the dashboard investigation", "5.21"],
+  ["P7.07", "Warning page for high-risk sites with go back, investigate, proceed", "Test URL triggers it", "5.21"],
+  ["P7.08", "Proceed allows that site for the session only", "New session warns again"],
+  ["P7.09", "Link click scan; held up to 1 s in Protect and Strict", "Unit tests plus manual check"],
+  ["P7.10", "Middle-click, Ctrl+click and new-tab opens checked before load", "Manual check"],
+  ["P7.11", "Copied URLs inside pages scanned with a result toast", "Unit tests plus manual check"],
+  ["P7.12", "Only URLs leave the browser; copies from sensitive fields ignored", "Unit tests on the extractor"],
+  ["P7.13", "Recent copied links listed in the popup", "Manual check"],
+  ["P7.14", "Paste and scan with optional clipboardRead permission", "Permission prompt appears only on first use"],
+  ["P7.15", "Link hover scan with 400 ms debounce and session cache", "Unit tests; no repeat calls for the same link", "5.21"],
+  ["P7.16", "Right-click Scan with TrustGuard on links, selection, page", "Manual check of all three", "5.21"],
+  ["P7.17", "Password, card, CVV and OTP fields detected", "Test page", "5.22"],
+  ["P7.18", "Submission destination analyzed with inline warning", "Test page posting cross-domain", "5.22"],
+  ["P7.19", "Sensitive values never read, stored or sent", "Code review plus test asserting no value access", "5.22"],
+  ["P7.20", "Suspicious downloads identified by name, extension and source", "Unit tests", "5.23"],
+  ["P7.21", "Risky downloads paused with keep / cancel notification", "Manual check", "5.23"],
+  ["P7.22", "Security assistant explains current-page findings", "Popup Why panel", "5.21"],
+  ["P7.23", "Modes Monitor, Protect, Strict on the options page", "Behavior differs per mode", "§11"],
+  ["P7.24", "No intelligence keys in the extension bundle", "Grep of built zip finds none", "§9"],
+  ["P7.25", "Extension unit tests for click, copy, form and download logic", "pnpm test passes"],
+  ["P7.26", "Release zip attached to GitHub releases", "Release page has the zip"],
+  ["P7.27", "Published on Microsoft Edge Add-ons", "Public listing live", "", 1]
+ ]},
+ { id: "P8", name: "Monitoring, history, diff, incidents and org", sub: "Change over time, response workflow and the org overview.", items: [
+  ["P8.01", "Watch domains or URLs", "Watchlist add, edit, remove", "5.19"],
+  ["P8.02", "Configurable interval 1 h to 24 h; VirusTotal at most daily", "Scheduler test", "5.19"],
+  ["P8.03", "Periodic checks saved as snapshots", "Snapshots appear over time", "5.19"],
+  ["P8.04", "Certificate, DNS, page and reputation change detection", "Fixture snapshot pairs", "5.19"],
+  ["P8.05", "Infrastructure change tracking", "Changes listed per target", "5.4"],
+  ["P8.06", "Risk-change alerts in the app", "Alert created when level changes", "5.19"],
+  ["P8.07", "Optional Discord or Slack webhook alerts", "Test webhook receives a message"],
+  ["P8.08", "Investigation history stored and searchable", "History page", "DoD"],
+  ["P8.09", "Compare historical snapshots", "Diff view", "5.20"],
+  ["P8.10", "Newly added forms, scripts and redirects shown", "Fixture diff", "5.20"],
+  ["P8.11", "Infrastructure changes highlighted", "Fixture diff", "5.20"],
+  ["P8.12", "Why risk went up or down explained", "Diff explanation text", "5.20"],
+  ["P8.13", "Incidents created from investigations with IDs TG-INC-YYYY-NNNNNN", "Sequential IDs in tests", "5.25"],
+  ["P8.14", "Incident severity, target, indicators, evidence", "Incident page", "5.25"],
+  ["P8.15", "Incident timeline", "Events logged on every change", "5.25"],
+  ["P8.16", "Status OPEN, INVESTIGATING, CONTAINED, RESOLVED", "Transition tests", "5.25"],
+  ["P8.17", "Recommended actions on incidents", "Shown from linked evidence", "5.25"],
+  ["P8.18", "Org dashboard: assets, domains, investigations, incidents, watchlist, users", "Each view lists real data", "5.24"],
+  ["P8.19", "Org risk overview with high-risk and suspicious counts", "Counts match the database", "5.24"],
+  ["P8.20", "Admin page showing free-tier usage", "DB size, storage, VT calls today"],
+  ["P8.21", "Snapshot thinning and retention jobs", "Job test"]
+ ]},
+ { id: "P9", name: "Security artifacts", sub: "Portable, tamper-evident records of completed investigations.", items: [
+  ["P9.01", "Artifact IDs TG-ART-YYYY-NNNNNN", "Sequential IDs in tests", "5.27"],
+  ["P9.02", "Created timestamp and schema version", "Fields present", "§10"],
+  ["P9.03", "Target, risk score and confidence", "Fields present", "§10"],
+  ["P9.04", "URL DNA", "Field present", "§10"],
+  ["P9.05", "Local analysis, VirusTotal, WHOIS, DNS and TLS results", "Fields present", "§10"],
+  ["P9.06", "Redirect chain and visual / page analysis", "Fields present", "§10"],
+  ["P9.07", "Correlated relationships, recommendations, timeline", "Fields present", "§10"],
+  ["P9.08", "Evidence metadata", "Each source has fetchedAt and status", "5.27"],
+  ["P9.09", "RFC 8785 canonical serialization", "Golden-vector tests"],
+  ["P9.10", "SHA-256 integrity hash", "Golden-vector tests", "§10"],
+  ["P9.11", "Artifact viewer page", "Renders every section", "5.27"],
+  ["P9.12", "Public verify page, no login, open or upload JSON", "Works signed out"],
+  ["P9.13", "VALID / MODIFIED result after recalculating the hash", "One-byte edit shows MODIFIED", "12.3"],
+  ["P9.14", "Integrity-not-authorship note shown", "Visible on viewer and verify page", "§10"]
+ ]},
+ { id: "P10", name: "Reports, polish, hardening and launch", sub: "The finished product, documented, tested and deployed.", items: [
+  ["P10.01", "PDF: executive summary", "Generated PDF", "5.26"],
+  ["P10.02", "PDF: threat score and confidence", "Generated PDF", "5.26"],
+  ["P10.03", "PDF: URL and domain intelligence", "Generated PDF", "5.26"],
+  ["P10.04", "PDF: VirusTotal, DNS and TLS findings", "Generated PDF", "5.26"],
+  ["P10.05", "PDF: redirect chain", "Generated PDF", "5.26"],
+  ["P10.06", "PDF: visual analysis", "Generated PDF", "5.26"],
+  ["P10.07", "PDF: threat graph summary", "Generated PDF", "5.26"],
+  ["P10.08", "PDF: risk factors and recommendations", "Generated PDF", "5.26"],
+  ["P10.09", "PDF: investigation timeline", "Generated PDF", "5.26"],
+  ["P10.10", "Investigation mode: one click, live per-source timeline, unified result", "End-to-end test", "5.18"],
+  ["P10.11", "Dashboard screens match the approved direction in light and dark", "Owner review", "", 1],
+  ["P10.12", "Accessibility basics: keyboard, focus, contrast, labels", "Manual pass plus axe check"],
+  ["P10.13", "Playwright end-to-end: sign in, investigate, report, verify artifact", "Green in CI"],
+  ["P10.14", "Security review of the full codebase, findings fixed", "Review notes in docs/testing-and-hardening.md"],
+  ["P10.15", "Input validation and rate limits on every expensive route", "Route audit list", "§9"],
+  ["P10.16", "VM: only key-based SSH inbound", "Security list checked"],
+  ["P10.17", "VM rebuild script in the repo", "Fresh VM brought up from the script"],
+  ["P10.18", "Worker image pulled from GHCR on a systemd timer", "New tag rolls out without manual steps"],
+  ["P10.19", "README", "Explains what it is, how to run it, live links"],
+  ["P10.20", "docs/architecture.md", "Matches the built system"],
+  ["P10.21", "docs/deployment.md", "Followed end to end on a fresh setup"],
+  ["P10.22", "docs/environment.md", "Every env var listed"],
+  ["P10.23", "docs/testing-and-hardening.md", "Present and current"],
+  ["P10.24", "docs/decisions.md and docs/HANDOFF.md current", "Reviewed at release"],
+  ["P10.25", "v1.0.0 tagged and released", "Release page live with extension zip"]
+ ]},
+ { id: "DoD", name: "Definition of Done", sub: "The release gate from the product summary. All twelve must pass on the deployed system.", items: [
+  ["D.01", "All core modules run through one investigation workflow", "End-to-end run touches every source", "§16"],
+  ["D.02", "Risk score deterministic for the same normalized evidence", "Determinism test green", "§16"],
+  ["D.03", "Confidence separate from risk", "Both stored and shown separately", "§16"],
+  ["D.04", "External API failures do not crash the app", "Fault-injection tests green", "§16"],
+  ["D.05", "Frontend never receives secret API credentials", "Bundle and network audit", "§16"],
+  ["D.06", "Extension scans the current page and shows TrustGuard risk", "Manual check on deployed backend", "§16"],
+  ["D.07", "High-risk pages produce a clear warning", "Manual check", "§16"],
+  ["D.08", "Investigation history stored and comparable", "Diff works on real history", "§16"],
+  ["D.09", "Threat relationships can be visualized", "Graph on a real investigation", "§16"],
+  ["D.10", "Security artifacts can be generated and verified", "VALID and MODIFIED both demonstrated", "§16"],
+  ["D.11", "PDF reports generated from completed investigations", "Real report downloaded", "§16"],
+  ["D.12", "Clean build with tests for scoring and artifact logic", "CI green on the release tag", "§16"]
+ ]},
+ { id: "DEL", name: "Final deliverables", sub: "The fourteen deliverables from the product summary, each live or in the repo.", items: [
+  ["L.01", "TrustGuard web dashboard", "Live on Vercel", "§14"],
+  ["L.02", "REST API analysis layer", "Documented and live", "§14"],
+  ["L.03", "Threat intelligence integrations", "VT, Safe Browsing, URLhaus, RDAP, DNS, TLS, crt.sh working", "§14"],
+  ["L.04", "Unified risk and confidence engine", "In core with tests", "§14"],
+  ["L.05", "Interactive infrastructure graph", "Live", "§14"],
+  ["L.06", "Browser extension", "Edge Add-ons listing and release zip", "§14"],
+  ["L.07", "Screenshot and visual phishing analyzer", "Live on the worker", "§14"],
+  ["L.08", "Investigation history and monitoring", "Live", "§14"],
+  ["L.09", "Incident management interface", "Live", "§14"],
+  ["L.10", "Professional PDF security report", "Live", "§14"],
+  ["L.11", "Security artifact viewer and verifier", "Live, verifier public", "§14"],
+  ["L.12", "Developer documentation", "README and architecture docs", "§14"],
+  ["L.13", "Deployment and environment documentation", "deployment.md and environment.md", "§14"],
+  ["L.14", "Testing and security-hardening documentation", "testing-and-hardening.md", "§14"]
+ ]}
+];
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const host = document.getElementById("groups");
+let show = "all";
+
+host.innerHTML = GROUPS.map(g => {
+  const done = g.items.filter(i => DONE.has(i[0])).length;
+  const pct = Math.round(done / g.items.length * 100);
+  return `<details class="group" data-g="${g.id}" ${done === g.items.length ? "data-complete" : ""}>
+    <summary>
+      <div class="gtitle"><span class="gid">${esc(g.id)}</span><h2>${esc(g.name)}</h2></div>
+      <div class="gcount">${done} / ${g.items.length}<span class="mini"><i style="width:${pct}%"></i></span></div>
+      <div class="gsub">${esc(g.sub)}</div>
+    </summary>
+    <ol class="items">${g.items.map(([id, t, v, ref, owner]) => `
+      <li class="item${DONE.has(id) ? " done" : ""}" data-text="${esc((id + " " + t + " " + v + " " + (ref || "")).toLowerCase())}">
+        <span class="box" role="img" aria-label="${DONE.has(id) ? "Done" : "Open"}"></span>
+        <span class="iid">${esc(id)}</span>
+        <div class="itext"><div class="ititle">${esc(t)}${ref ? `<span class="iref">${esc(ref)}</span>` : ""}${owner ? `<span class="owner">OWNER</span>` : ""}</div>
+        <div class="iverify">${esc(v)}</div></div>
+      </li>`).join("")}</ol>
+    <div class="empty" hidden>No items match.</div>
+  </details>`;
+}).join("");
+
+const all = GROUPS.flatMap(g => g.items);
+const doneCount = all.filter(i => DONE.has(i[0])).length;
+const total = all.length;
+const pctAll = Math.floor(doneCount / total * 100);
+document.getElementById("pct").firstChild.textContent = pctAll + "%";
+document.getElementById("pctsub").textContent = `${doneCount} of ${total} items verified`;
+document.getElementById("fill").style.width = (doneCount / total * 100) + "%";
+
+// open the first group with open items
+const firstOpen = GROUPS.find(g => g.items.some(i => !DONE.has(i[0])));
+if (firstOpen) host.querySelector(`[data-g="${firstOpen.id}"]`).open = true;
+
+function apply() {
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  host.querySelectorAll("details.group").forEach(d => {
+    let visible = 0;
+    d.querySelectorAll("li.item").forEach(li => {
+      const isDone = li.classList.contains("done");
+      const ok = (!q || li.dataset.text.includes(q)) && (show === "all" || (show === "done") === isDone);
+      li.hidden = !ok; if (ok) visible++;
+    });
+    d.querySelector(".empty").hidden = visible > 0;
+    if (q) d.open = visible > 0;
+  });
+}
+document.getElementById("q").addEventListener("input", apply);
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  show = b.dataset.show;
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  apply();
+}));
+</script>
