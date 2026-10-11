@@ -11,8 +11,10 @@ export async function hit(db: DB, o: { key: string; limit: number; windowMs: num
     .onConflictDoUpdate({
       target: rateLimits.key,
       set: {
-        count: sql`case when ${rateLimits.windowStart} = excluded.window_start then ${rateLimits.count} + 1 else 1 end`,
-        windowStart: sql`excluded.window_start`,
+        // Only a newer window starts a fresh count. A request whose clock is behind
+        // (older window) still counts against the current one instead of resetting it.
+        count: sql`case when excluded.window_start > ${rateLimits.windowStart} then 1 else ${rateLimits.count} + 1 end`,
+        windowStart: sql`greatest(${rateLimits.windowStart}, excluded.window_start)`,
       },
     })
     .returning({ count: rateLimits.count });
