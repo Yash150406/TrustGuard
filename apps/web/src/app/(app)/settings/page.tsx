@@ -1,6 +1,7 @@
 import { can, canManageMember, ROLES, type Role } from "@trustguard/core";
 import { getOrg, listMembers, listSignInMethods, listTokens } from "@trustguard/db";
 import { db } from "@/db";
+import { linkErrorMessage } from "@/lib/link-errors";
 import { requireMember } from "@/lib/session";
 import { InviteForm, MemberControls, RevokeButton, SignInMethods, TokenForm } from "./forms";
 
@@ -18,6 +19,7 @@ export default async function Settings({ searchParams }: PageProps<"/settings">)
     listSignInMethods(db, me.userId),
   ]);
   const notice = typeof connected === "string" ? CONNECTED[connected] : undefined;
+  const linkError = linkErrorMessage(typeof link_error === "string" ? link_error : undefined);
   const canInvite = can(me.role, "org:invite");
 
   return (
@@ -130,10 +132,9 @@ export default async function Settings({ searchParams }: PageProps<"/settings">)
               </p>
             </div>
             {notice && <p role="status" className="text-sm text-safe">{notice}</p>}
-            {link_error && (
+            {linkError && (
               <p role="alert" className="text-sm text-high">
-                That account is already used by another TrustGuard user. Sign in with it and remove
-                it there first, or use a different account.
+                {linkError}
               </p>
             )}
             <SignInMethods orgId={me.orgId} connected={methods} />

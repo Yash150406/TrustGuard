@@ -17,7 +17,9 @@ export default async function SignIn({ searchParams }: PageProps<"/signin">) {
   );
 
   // A signed-in user only lands here when connecting another sign-in method failed.
-  if ((await auth())?.user) redirect(error ? "/settings?link_error=1" : redirectTo);
+  if ((await auth())?.user) {
+    redirect(error ? `/settings?link_error=${encodeURIComponent(error)}` : redirectTo);
+  }
 
   const btn =
     "flex w-full items-center justify-center gap-2.5 rounded-full bg-fg px-5 py-3 text-sm font-semibold text-bg transition-transform duration-300 ease-spring active:scale-[0.98]";
