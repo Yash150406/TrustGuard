@@ -2,7 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { canManageMember, createInviteInput, createTokenInput, isRole, type Action } from "@trustguard/core";
+import {
+  canManageMember,
+  createInviteInput,
+  createTokenInput,
+  idSchema,
+  isRole,
+  type Action,
+} from "@trustguard/core";
 import {
   createInvite,
   createToken,
@@ -116,7 +123,9 @@ export async function createTokenAction(_prev: ActionState, f: FormData): Promis
 export async function revokeTokenAction(_prev: ActionState, f: FormData): Promise<ActionState> {
   return run(async () => {
     const me = await memberFor(f, "investigation:read");
-    await revokeToken(db, { id: str(f, "id"), userId: me.userId, now: new Date() });
+    const id = idSchema.safeParse(str(f, "id"));
+    if (!id.success) return { error: "That token id isn't valid." };
+    await revokeToken(db, { id: id.data, userId: me.userId, now: new Date() });
     revalidatePath("/settings");
     return { ok: "Token revoked." };
   });

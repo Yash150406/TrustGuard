@@ -13,3 +13,6 @@ export const targetSchema = z.string().transform((value, ctx) => {
 export const createInvestigationInput = z.object({ target: targetSchema });
 export const createInviteInput = z.object({ role: z.enum(["admin", "analyst", "viewer"]) });
 export const createTokenInput = z.object({ name: z.string().trim().min(1).max(60) });
+
+// Database ids are UUIDs; checking first turns a malformed id into a 400 instead of a Postgres error.
+export const idSchema = z.uuid();

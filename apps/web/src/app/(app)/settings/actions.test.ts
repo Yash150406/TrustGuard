@@ -156,3 +156,8 @@ test("a settings form without an org is refused", async () => {
   f.delete("orgId");
   expect((await actions.createTokenAction({}, f)).error).toBe("Reload this page and try again.");
 });
+
+test("revoking with a malformed id returns a message instead of failing", async () => {
+  const r = await actions.revokeTokenAction({}, form({ id: "not-a-uuid" }));
+  expect(r.error).toBe("That token id isn't valid.");
+});

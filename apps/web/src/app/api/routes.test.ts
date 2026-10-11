@@ -117,3 +117,11 @@ test("token and invite routes never accept API tokens", async () => {
   expect(calls.length).toBeGreaterThan(0);
   expect(calls.every((c) => !c.opts?.allowToken)).toBe(true);
 });
+
+test("revoking with a malformed id is a 400, not a server error", async () => {
+  const res = await tokenById.DELETE(new Request("http://localhost/x", { method: "DELETE" }), {
+    params: Promise.resolve({ id: "not-a-uuid" }),
+  });
+  expect(res.status).toBe(400);
+  expect((await res.json()).error).toBe("That token id isn't valid.");
+});
