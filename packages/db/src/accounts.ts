@@ -1,8 +1,13 @@
 import { and, asc, eq } from "drizzle-orm";
 import type { DB } from "./client";
-import { accounts } from "./schema";
+import { accounts, users } from "./schema";
 
 export class SignInMethodError extends Error {}
+
+export async function getUser(db: DB, userId: string) {
+  const [u] = await db.select().from(users).where(eq(users.id, userId));
+  return u ?? null;
+}
 
 export async function listSignInMethods(db: DB, userId: string): Promise<string[]> {
   const rows = await db

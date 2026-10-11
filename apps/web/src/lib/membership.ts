@@ -1,5 +1,5 @@
 import { can, type Action, type Role } from "@trustguard/core";
-import { getRole, listMemberships, verifyToken, type DB } from "@trustguard/db";
+import { ensurePersonalOrg, getRole, getUser, listMemberships, verifyToken, type DB } from "@trustguard/db";
 import { AppError } from "./errors";
 
 export type Member = { userId: string; orgId: string; role: Role };
@@ -38,6 +38,13 @@ export async function resolveMember(
     userId = o.sessionUserId;
     const mine = await listMemberships(db, userId);
     orgId = mine.find((m) => m.orgId === o.wantedOrgId)?.orgId ?? mine[0]?.orgId;
+    // Nobody should be signed in with nowhere to go: if the user lost their last org
+    // (removed by another owner, or the first-sign-in setup failed), give them a new one.
+    if (!orgId) {
+      const user = await getUser(db, userId);
+      if (!user) throw new AppError(401, "Sign in to continue.");
+      orgId = await ensurePersonalOrg(db, { id: user.id, name: user.name });
+    }
   }
 
   if (o.requiredOrgId && orgId !== o.requiredOrgId) {

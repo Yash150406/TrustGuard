@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from "vitest";
-import { createToken, ensurePersonalOrg, revokeToken, type DB } from "@trustguard/db";
+import { createToken, ensurePersonalOrg, getOrg, revokeToken, type DB } from "@trustguard/db";
 import { memberships } from "@trustguard/db/schema";
 import { makeUser, testDb } from "@trustguard/db/testing";
 import { resolveMember } from "./membership";
@@ -72,11 +72,11 @@ test("a viewer cannot create investigations", async () => {
   ).rejects.toMatchObject({ status: 403, publicMessage: "Your role doesn't allow this." });
 });
 
-test("a signed-in user with no org gets 403", async () => {
-  const u = await makeUser(db);
-  await expect(
-    resolveMember(db, { sessionUserId: u.id, action: "investigation:read", now }),
-  ).rejects.toMatchObject({ status: 403 });
+test("a signed-in user left with no org gets a new personal org instead of an error", async () => {
+  const u = await makeUser(db, "Rhea");
+  const m = await resolveMember(db, { sessionUserId: u.id, action: "investigation:create", now });
+  expect(m.role).toBe("owner");
+  expect((await getOrg(db, m.orgId))?.name).toBe("Rhea's org");
 });
 
 test("API tokens are refused unless the route allows them", async () => {
