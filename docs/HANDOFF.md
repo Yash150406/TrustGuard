@@ -1,23 +1,33 @@
 # Handoff
 
-**Status:** design approved, phase 1 plan written, no application code yet.
+**Status:** phase 1 is complete and waiting to be merged. PR #1 (`phase-1` into `main`) is ready for review, CI is green and the app is live at https://usetrustguard.vercel.app. 119 tests pass.
 
-## Done
-- Public repo with description, topics, labels, private vulnerability reporting
-- Design spec: `docs/specs/2026-10-11-trustguard-design.md`
-- Phase 1 plan: `docs/plans/2026-10-11-phase-1-foundation.md`
-- Decisions log: `docs/decisions.md`
-- Status checklist: `docs/status.html`
+**Maintainers:** Aniruddha More (lead: backend, infra, security, CI, deploy) and Yash More (UI, design, extension). Each also takes some tasks in the other's area.
 
-## Waiting on the owner
-- P0.08 Oracle Cloud account and ARM VM
-- P0.09 Supabase project
-- P0.10 Vercel project linked to the repo
-- P0.11 VirusTotal, Safe Browsing and URLhaus keys
-- P0.12 GitHub and Google OAuth apps
-- P0.13 Microsoft Partner Center account
+## Done in phase 1
+- Monorepo with `packages/core`, `packages/db` and `apps/web`
+- Database schema and migrations on Supabase, row level security on every table
+- GitHub and Google sign-in, connect or disconnect either from Settings
+- Orgs, roles, invite links, org switching, API tokens (session-only account routes), rate limiting, intel cache
+- Settings page in the approved design (direction C), error page with sign-out
+- CI, deployment on Vercel, `docs/architecture.md`, `docs/deployment.md`, `docs/environment.md`
+- Independent review of the whole branch; all 15 bugs found during the phase (#2 to #16) fixed and closed with tests
 
-None of these block phase 1 tasks 1 to 10, which run entirely on the local machine.
+## To finish phase 1
+1. Aniruddha reviews, approves and merges PR #1 with a merge commit.
+2. Yash switches Vercel's production branch back to `main` (Settings, Environments, Production, Branch Tracking).
+3. Check that CI goes green on `main`, which completes status item P1.19.
+
+## Before phase 2 starts (still open in phase 0)
+- P0.08 Oracle Cloud Always Free account and ARM VM (the analysis worker runs there)
+- P0.11 VirusTotal, Google Safe Browsing and URLhaus API keys
+- P0.13 Microsoft Partner Center account for Edge Add-ons (free; needed by phase 7, but it's a phase 0 item)
+
+## Notes for the next session
+- Work in plan order; finish each phase to 100% before writing the next phase's plan.
+- Commit approval is suspended; commit and push as each task passes. Split authorship per task with `git ca` (Aniruddha) and `git cy` (Yash).
+- Every PR and issue gets labels, assignees, a reviewer and the phase milestone.
+- Status items P2.36 and P7.28 check that the worker and extension use the shared types in `core`.
 
 ## Next step
-Phase 1, Task 1: workspace scaffold.
+Merge PR #1, then write the phase 2 plan (scanner, reputation and scoring) and set up the phase 0 accounts above.

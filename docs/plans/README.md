@@ -14,5 +14,6 @@ One plan per roadmap phase, each written just before the phase starts, so it is 
 | 8. Monitoring, history, diff, incidents and org | | |
 | 9. Security artifacts | | |
 | 10. Reports, polish, hardening and launch | | |
+| 11. Investigation assistant (RAG) | | |
 
 Scope for every phase comes from [the design spec](../specs/2026-10-11-trustguard-design.md).

@@ -77,13 +77,14 @@ All run on the worker. An unavailable source is never treated as safe and is nev
 - Levels: SAFE 0-39, SUSPICIOUS 40-69, HIGH RISK 70-100.
 - The points table is versioned (`scoringVersion`) and stored with each result. Same evidence and same version always give the same score.
 - Confidence is separate: based on source coverage (which sources returned data, weighted) and agreement. Conflicts lower confidence and are named in the explanation.
-- Explanations come from templates filled with real signals. No LLM.
+- Explanations come from templates filled with real signals. No LLM here: the score explanation must be reproducible. The separate investigation assistant (section 15) answers follow-up questions.
 - Financial exposure (5.16): per-org configurable values (credential compromise, payment fraud, business impact). Output is a low-high range scaled by risk, always labeled as an estimate.
 - Recommendations (5.17): rule table from signals to user actions (credential warning, download warning) and org actions (block, investigate, watchlist), each linked to its evidence.
 
 ## 5. Accounts, orgs, quotas, data
 
 - Auth.js with GitHub and Google OAuth only. No email login (sending to arbitrary addresses needs a paid domain).
+- One sign-in method per email on first sign-in, so someone can't take over an account by adding its email to their own GitHub. Signed-in users can connect the other provider from Settings (linked to the current user) and disconnect one as long as another remains.
 - Each user gets a personal org on signup. Invites are copyable links. Roles: owner, admin, analyst, viewer.
 - Every org-owned table has `org_id`. All queries go through one data-access layer that requires an org id. Tests prove cross-org reads fail.
 - Shared `intel_cache` holds raw public-source responses keyed by source and target. Investigations, watchlists, incidents and artifacts are private per org.
@@ -157,11 +158,15 @@ Distribution: Microsoft Edge Add-ons (free) and unpacked zip on GitHub releases 
 
 ## 11. UI
 
-Dark-first, SOC-oriented. Before any screen is finalized, the design direction goes through the design skills (frontend design guidance plus the high-end visual design pass) and the user approves the direction from real previews.
+Dashboard and website use direction C, "Signal room": near-black ground, two-layer machined panels (outer shell, inner core) in a bento grid, light hairlines, a ring gauge for the score, and one background glow tinted by the verdict. Dark first, with a light theme from the same tokens. Sora for display, Manrope for text, JetBrains Mono only for literal technical values (URLs, IPs, hashes). Tokens live in `apps/web/src/app/globals.css` and are documented in `docs/design.md`.
+
+PDF reports use direction B, "Analyst report": a findings document on cool paper with a plain-language headline, a verdict seal, numbered findings, then the evidence. Newsreader headings, Public Sans text.
+
+The extension popup and warning page use the direction C tokens.
 
 ## 12. Docs
 
-`README.md`, `docs/architecture.md`, `docs/deployment.md`, `docs/environment.md`, `docs/testing-and-hardening.md`, `docs/decisions.md`, `docs/HANDOFF.md`.
+`README.md`, `docs/architecture.md`, `docs/deployment.md`, `docs/environment.md`, `docs/testing-and-hardening.md`, `docs/decisions.md`, `docs/HANDOFF.md`, `docs/design.md`.
 
 ## 13. Completion tracking
 
@@ -181,3 +186,15 @@ Dark-first, SOC-oriented. Before any screen is finalized, the design direction g
 | 8 | Monitoring, history, security diff, incidents, org dashboard, webhooks |
 | 9 | Security artifacts, viewer, public verifier |
 | 10 | PDF reports, UI polish, full test pass, security hardening, docs, deploy |
+| 11 | Investigation assistant (RAG): retrieval over investigation evidence, grounded answers with citations |
+
+## 15. Investigation assistant (planned, phase 11)
+
+An "Ask about this result" panel on the investigation page (design approved as part of direction C). People ask follow-up questions in plain language; answers are built only from that investigation's stored evidence.
+
+- Retrieval: the investigation's source results, signals, redirect chain, graph neighbors and linked incidents are chunked and embedded. Vectors stored with pgvector on the existing Supabase database (free tier).
+- Grounding: every claim in an answer cites the source it came from (rendered as source chips). If the evidence doesn't cover the question, the assistant says so instead of guessing. It never invents intelligence results.
+- Scope: an answer can only read the asking org's own data. Retrieval goes through the same org-scoped access layer as everything else.
+- Limits: per-user daily question quota, and the assistant is shown as unavailable (never faked) when the model or quota is exhausted.
+- Budget: must stay at $0. The model and embedding provider are chosen at the start of phase 11 from free options (for example a small open model served on the Oracle VM, or a free API tier), and the choice is logged in `docs/decisions.md`.
+- The template-based score explanation (section 4) stays as is. The assistant adds Q&A on top of it, it doesn't replace it.

@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+/*
+  Signal room. Dark first: machined panels (shell + core) on near-black, light
+  hairlines, and one glow tinted by the current risk level. Light theme is the
+  same system on cool grey with frosted white panels. See docs/design.md.
+*/
+
+:root {
+  --bg: #07090d;
+  --shell: rgb(255 255 255 / 0.04);
+  --core: #0d1117;
+  --hair: rgb(255 255 255 / 0.09);
+  --fg: #e9eef4;
+  --muted: #8a95a3;
+  --safe: #58d39a;
+  --warn: #f3b455;
+  --high: #ff6b5b;
+  --glow: var(--safe);
+  --glow-strength: 30%;
+  --core-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #edf0f4;
+    --shell: rgb(16 24 40 / 0.035);
+    --core: #ffffff;
+    --hair: rgb(16 24 40 / 0.09);
+    --fg: #0f1622;
+    --muted: #5b6676;
+    --safe: #1e9460;
+    --warn: #b5730c;
+    --high: #d23a2c;
+    --glow-strength: 16%;
+    --core-shadow: 0 1px 2px rgb(16 24 40 / 0.05), inset 0 1px 0 rgb(255 255 255 / 0.8);
+    color-scheme: light;
+  }
+}
+
+:root[data-theme="light"] {
+  --bg: #edf0f4;
+  --shell: rgb(16 24 40 / 0.035);
+  --core: #ffffff;
+  --hair: rgb(16 24 40 / 0.09);
+  --fg: #0f1622;
+  --muted: #5b6676;
+  --safe: #1e9460;
+  --warn: #b5730c;
+  --high: #d23a2c;
+  --glow-strength: 16%;
+  --core-shadow: 0 1px 2px rgb(16 24 40 / 0.05), inset 0 1px 0 rgb(255 255 255 / 0.8);
+  color-scheme: light;
+}
+
+/* Set on a page wrapper to tint the glow by verdict. */
+[data-risk="SUSPICIOUS"] {
+  --glow: var(--warn);
+}
+[data-risk="HIGH_RISK"] {
+  --glow: var(--high);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-shell: var(--shell);
+  --color-core: var(--core);
+  --color-hair: var(--hair);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-safe: var(--safe);
+  --color-warn: var(--warn);
+  --color-high: var(--high);
+
+  --font-display: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, Consolas, monospace;
+
+  --radius-shell: 1.625rem;
+  --radius-core: 1.25rem;
+  --radius-chip: 0.875rem;
+
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The two-layer panel: a faint outer tray holding the solid inner surface. */
+@utility panel-shell {
+  background: var(--shell);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-shell);
+  padding: 6px;
+}
+@utility panel-core {
+  background: var(--core);
+  border-radius: var(--radius-core);
+  box-shadow: var(--core-shadow);
+  padding: 20px;
+  height: 100%;
+}
+
+/* One glow per page, fixed so it never repaints while scrolling. */
+@utility risk-glow {
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: fixed;
+    z-index: -1;
+    width: 760px;
+    height: 760px;
+    left: -220px;
+    top: -380px;
+    pointer-events: none;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--glow) var(--glow-strength), transparent),
+      transparent
+    );
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
