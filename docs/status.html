@@ -181,7 +181,7 @@ footer { margin-top: 40px; color: var(--muted); font-size: 13px }
 // Items verified done. Edited by hand when an item's verification passes.
 const DONE = new Set([
   "P0.01", "P0.02", "P0.03", "P0.04", "P0.05", "P0.06", "P0.07", "P0.09", "P0.10", "P0.12",
-  "P1.01", "P1.02", "P1.06", "P1.04", "P1.05", "P1.07", "P1.08", "P1.09", "P1.10", "P1.11", "P1.12", "P1.13", "P1.14", "P1.15", "P1.16", "P1.17", "P1.18", "P1.20", "P1.21", "P1.22"
+  "P1.01", "P1.02", "P1.03", "P1.06", "P1.04", "P1.05", "P1.07", "P1.08", "P1.09", "P1.10", "P1.11", "P1.12", "P1.13", "P1.14", "P1.15", "P1.16", "P1.17", "P1.18", "P1.20", "P1.21", "P1.22"
 ]);
 
 // [id, title, verification, ref, ownerAction]
@@ -204,7 +204,7 @@ const GROUPS = [
  { id: "P1", name: "Foundation", sub: "Monorepo, contracts, schema, auth, orgs, CI and the visual direction.", items: [
   ["P1.01", "pnpm workspace with apps/web, apps/worker, apps/extension, packages/core", "pnpm -r build succeeds"],
   ["P1.02", "Strict TypeScript, ESLint and Prettier shared across packages", "pnpm lint and pnpm typecheck pass with zero errors"],
-  ["P1.03", "Shared types in core: Investigation, SourceResult, Signal, Evidence, Snapshot", "Imported by web, worker and extension without duplication"],
+  ["P1.03", "Shared types and contracts live in core", "SourceResult, Signal, Role, API schemas and target normalization are imported by web and db from core, with no copies elsewhere"],
   ["P1.04", "zod schemas for every API request and response", "Invalid payloads rejected with 400 in tests"],
   ["P1.05", "API contract documented", "docs/architecture.md lists every route, method, input and output"],
   ["P1.06", "Env config validated at startup for web and worker", "Missing var fails fast with a clear message; .env.example committed"],
@@ -260,7 +260,8 @@ const GROUPS = [
   ["P2.32", "Source runner with per-source timeout and ok / unavailable / error status", "Fixture test where one source hangs; investigation still completes"],
   ["P2.33", "Investigation API: create, get, poll", "API tests"],
   ["P2.34", "Per-user daily quota, cache hits free", "Quota test; 21st full run refused with a clear message"],
-  ["P2.35", "Worker Docker image for ARM", "Image builds in CI and runs on the VM"]
+  ["P2.35", "Worker Docker image for ARM", "Image builds in CI and runs on the VM"],
+  ["P2.36", "Worker uses the shared types from core", "Worker imports SourceResult, Signal and the scanner from core; no duplicated types"]
  ]},
  { id: "P3", name: "DNS, TLS and redirects", sub: "Infrastructure intelligence and safe redirect following.", items: [
   ["P3.01", "DNS A, AAAA, MX, NS, TXT and CNAME records", "Fixture tests and one live domain", "5.4"],
@@ -374,7 +375,8 @@ const GROUPS = [
   ["P7.24", "No intelligence keys in the extension bundle", "Grep of built zip finds none", "§9"],
   ["P7.25", "Extension unit tests for click, copy, form and download logic", "pnpm test passes"],
   ["P7.26", "Release zip attached to GitHub releases", "Release page has the zip"],
-  ["P7.27", "Published on Microsoft Edge Add-ons", "Public listing live", "", 1]
+  ["P7.27", "Published on Microsoft Edge Add-ons", "Public listing live", "", 1],
+  ["P7.28", "Extension uses the shared types and scanner from core", "Extension bundles core's scanner and types; no duplicated logic"]
  ]},
  { id: "P8", name: "Monitoring, history, diff, incidents and org", sub: "Change over time, response workflow and the org overview.", items: [
   ["P8.01", "Watch domains or URLs", "Watchlist add, edit, remove", "5.19"],
