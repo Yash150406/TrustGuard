@@ -1,8 +1,11 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { GitHubIcon, GoogleIcon } from "@/components/provider-icons";
 import {
   changeRole,
+  connectSignInMethod,
+  disconnectSignInMethod,
   createInviteAction,
   createTokenAction,
   removeMemberAction,
@@ -170,5 +173,57 @@ export function RevokeButton({ id }: { id: string }) {
       </button>
       {state.error && <Message state={state} />}
     </form>
+  );
+}
+
+const METHODS = [
+  { id: "github", name: "GitHub", Icon: GitHubIcon },
+  { id: "google", name: "Google", Icon: GoogleIcon },
+] as const;
+
+export function SignInMethods({ connected }: { connected: string[] }) {
+  const [state, disconnect, pending] = useActionState(disconnectSignInMethod, {});
+  return (
+    <div className="grid grid-cols-1 gap-2">
+      <ul className="divide-y divide-hair">
+        {METHODS.map(({ id, name, Icon }) => {
+          const isOn = connected.includes(id);
+          return (
+            <li key={id} className="flex items-center justify-between gap-3 py-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="grid size-9 shrink-0 place-items-center rounded-full border border-hair">
+                  <Icon />
+                </span>
+                <div className="min-w-0">
+                  <p className="font-semibold">{name}</p>
+                  <p className="text-sm text-muted">{isOn ? "Connected" : "Not connected"}</p>
+                </div>
+              </div>
+              {isOn ? (
+                <form action={disconnect}>
+                  <input type="hidden" name="provider" value={id} />
+                  <button
+                    type="submit"
+                    className={`${ghost} py-1.5`}
+                    disabled={pending || connected.length < 2}
+                    title={connected.length < 2 ? "You need at least one way to sign in" : undefined}
+                  >
+                    Disconnect
+                  </button>
+                </form>
+              ) : (
+                <form action={connectSignInMethod}>
+                  <input type="hidden" name="provider" value={id} />
+                  <button type="submit" className={`${solid} py-1.5`}>
+                    Connect {name}
+                  </button>
+                </form>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      <Message state={state} />
+    </div>
   );
 }

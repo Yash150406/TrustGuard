@@ -1,4 +1,6 @@
-import { signIn } from "@/auth";
+import { redirect } from "next/navigation";
+import { auth, signIn } from "@/auth";
+import { GitHubIcon, GoogleIcon } from "@/components/provider-icons";
 
 const MESSAGES: Record<string, string> = {
   OAuthAccountNotLinked:
@@ -12,8 +14,11 @@ export default async function SignIn({ searchParams }: PageProps<"/signin">) {
   const callbackUrl = typeof params.callbackUrl === "string" ? params.callbackUrl : "/";
   const redirectTo = callbackUrl.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/";
 
+  // A signed-in user only lands here when connecting another sign-in method failed.
+  if ((await auth())?.user) redirect(error ? "/settings?link_error=1" : redirectTo);
+
   const btn =
-    "w-full rounded-full bg-fg px-5 py-3 text-sm font-semibold text-bg transition-transform duration-300 ease-spring active:scale-[0.98]";
+    "flex w-full items-center justify-center gap-2.5 rounded-full bg-fg px-5 py-3 text-sm font-semibold text-bg transition-transform duration-300 ease-spring active:scale-[0.98]";
   return (
     <main className="risk-glow grid min-h-dvh place-items-center px-4">
       <div className="panel-shell w-full max-w-sm">
@@ -35,6 +40,7 @@ export default async function SignIn({ searchParams }: PageProps<"/signin">) {
               }}
             >
               <button type="submit" className={btn}>
+                <GitHubIcon />
                 Continue with GitHub
               </button>
             </form>
@@ -45,6 +51,7 @@ export default async function SignIn({ searchParams }: PageProps<"/signin">) {
               }}
             >
               <button type="submit" className={btn}>
+                <GoogleIcon />
                 Continue with Google
               </button>
             </form>

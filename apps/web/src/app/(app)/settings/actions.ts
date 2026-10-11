@@ -12,7 +12,10 @@ import {
   removeMember,
   revokeToken,
   setMemberRole,
+  SignInMethodError,
+  unlinkSignInMethod,
 } from "@trustguard/db";
+import { signIn } from "@/auth";
 import { db } from "@/db";
 import { AppError } from "@/lib/errors";
 import { requireMember } from "@/lib/session";
@@ -26,7 +29,7 @@ async function run(fn: () => Promise<ActionState>): Promise<ActionState> {
     return await fn();
   } catch (e) {
     if (e instanceof AppError) return { error: e.publicMessage };
-    if (e instanceof OrgRuleError) return { error: e.message };
+    if (e instanceof OrgRuleError || e instanceof SignInMethodError) return { error: e.message };
     console.error("settings action failed", e instanceof Error ? e.name : "UnknownError");
     return { error: "Something went wrong. Try again in a moment." };
   }
@@ -108,5 +111,29 @@ export async function revokeTokenAction(_prev: ActionState, f: FormData): Promis
     await revokeToken(db, { id: str(f, "id"), userId: me.userId, now: new Date() });
     revalidatePath("/settings");
     return { ok: "Token revoked." };
+  });
+}
+
+const PROVIDERS = { github: "GitHub", google: "Google" } as const;
+type Provider = keyof typeof PROVIDERS;
+const isProvider = (p: string): p is Provider => p in PROVIDERS;
+
+// Signing in with another provider while already signed in links it to the
+// current user (Auth.js account linking), so the same email check doesn't apply.
+export async function connectSignInMethod(f: FormData) {
+  const provider = str(f, "provider");
+  if (!isProvider(provider)) return;
+  await requireMember("investigation:read");
+  await signIn(provider, { redirectTo: `/settings?connected=${provider}` });
+}
+
+export async function disconnectSignInMethod(_prev: ActionState, f: FormData): Promise<ActionState> {
+  return run(async () => {
+    const provider = str(f, "provider");
+    if (!isProvider(provider)) return { error: "Pick a sign-in method." };
+    const me = await requireMember("investigation:read");
+    await unlinkSignInMethod(db, me.userId, provider);
+    revalidatePath("/settings");
+    return { ok: `${PROVIDERS[provider]} disconnected.` };
   });
 }

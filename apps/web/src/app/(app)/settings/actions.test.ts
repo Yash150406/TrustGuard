@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest";
-import { ensurePersonalOrg, getRole, listTokens, type DB } from "@trustguard/db";
-import { memberships } from "@trustguard/db/schema";
+import { ensurePersonalOrg, getRole, listSignInMethods, listTokens, type DB } from "@trustguard/db";
+import { accounts, memberships } from "@trustguard/db/schema";
 import { makeUser, testDb } from "@trustguard/db/testing";
 import type { Member } from "@/lib/membership";
 import { AppError } from "@/lib/errors";
@@ -18,6 +18,12 @@ vi.mock("@/lib/session", () => ({
   },
 }));
 vi.mock("next/cache", () => ({ revalidatePath: () => {} }));
+const signInCalls = vi.hoisted(() => [] as unknown[][]);
+vi.mock("@/auth", () => ({
+  signIn: async (...args: unknown[]) => {
+    signInCalls.push(args);
+  },
+}));
 vi.mock("next/headers", () => ({
   headers: async () => new Headers({ origin: "https://tg.example" }),
 }));
@@ -96,4 +102,39 @@ test("tokens are shown once and can be revoked", async () => {
 test("signed-out calls return the sign-in message", async () => {
   state.member = null;
   expect((await actions.createTokenAction({}, form({ name: "x" }))).error).toBe("Sign in to continue.");
+});
+
+const linkAccount = (userId: string, provider: string) =>
+  state.db.insert(accounts).values({
+    userId,
+    provider,
+    type: "oauth",
+    providerAccountId: `${provider}-${crypto.randomUUID()}`,
+  });
+
+test("connecting a sign-in method starts that provider's login and returns to settings", async () => {
+  signInCalls.length = 0;
+  await actions.connectSignInMethod(form({ provider: "github" }));
+  expect(signInCalls).toEqual([["github", { redirectTo: "/settings?connected=github" }]]);
+});
+
+test("connecting an unknown provider does nothing", async () => {
+  signInCalls.length = 0;
+  await actions.connectSignInMethod(form({ provider: "evil" }));
+  expect(signInCalls).toEqual([]);
+});
+
+test("disconnecting a second sign-in method works", async () => {
+  await linkAccount(ownerId, "google");
+  await linkAccount(ownerId, "github");
+  expect(await actions.disconnectSignInMethod({}, form({ provider: "github" }))).toEqual({
+    ok: "GitHub disconnected.",
+  });
+  expect(await listSignInMethods(state.db, ownerId)).toEqual(["google"]);
+});
+
+test("the last sign-in method can't be disconnected", async () => {
+  await linkAccount(ownerId, "google");
+  const r = await actions.disconnectSignInMethod({}, form({ provider: "google" }));
+  expect(r.error).toBe("Connect another sign-in method before removing this one.");
 });

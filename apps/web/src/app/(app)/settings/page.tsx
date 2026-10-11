@@ -1,18 +1,23 @@
 import { can, canManageMember, ROLES, type Role } from "@trustguard/core";
-import { getOrg, listMembers, listTokens } from "@trustguard/db";
+import { getOrg, listMembers, listSignInMethods, listTokens } from "@trustguard/db";
 import { db } from "@/db";
 import { requireMember } from "@/lib/session";
-import { InviteForm, MemberControls, RevokeButton, TokenForm } from "./forms";
+import { InviteForm, MemberControls, RevokeButton, SignInMethods, TokenForm } from "./forms";
 
 const dateFmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
-export default async function Settings() {
+const CONNECTED: Record<string, string> = { github: "GitHub connected.", google: "Google connected." };
+
+export default async function Settings({ searchParams }: PageProps<"/settings">) {
+  const { connected, link_error } = await searchParams;
   const me = await requireMember("investigation:read");
-  const [org, members, tokens] = await Promise.all([
+  const [org, members, tokens, methods] = await Promise.all([
     getOrg(db, me.orgId),
     listMembers(db, me.orgId),
     listTokens(db, me.userId),
+    listSignInMethods(db, me.userId),
   ]);
+  const notice = typeof connected === "string" ? CONNECTED[connected] : undefined;
   const canInvite = can(me.role, "org:invite");
 
   return (
@@ -77,7 +82,7 @@ export default async function Settings() {
           </div>
         </section>
 
-        <section className="panel-shell md:col-span-12" aria-labelledby="tokens-h">
+        <section className="panel-shell md:col-span-7" aria-labelledby="tokens-h">
           <div className="panel-core grid grid-cols-1 gap-4">
             <div>
               <h2 id="tokens-h" className="font-display text-[15px] font-medium text-muted">
@@ -110,6 +115,27 @@ export default async function Settings() {
                 ))}
               </ul>
             )}
+          </div>
+        </section>
+
+        <section className="panel-shell md:col-span-5" aria-labelledby="methods-h">
+          <div className="panel-core grid grid-cols-1 content-start gap-2">
+            <div>
+              <h2 id="methods-h" className="font-display text-[15px] font-medium text-muted">
+                Sign-in methods
+              </h2>
+              <p className="text-sm text-muted">
+                Connect both to sign in with either one. You need at least one.
+              </p>
+            </div>
+            {notice && <p role="status" className="text-sm text-safe">{notice}</p>}
+            {link_error && (
+              <p role="alert" className="text-sm text-high">
+                That account is already used by another TrustGuard user. Sign in with it and remove
+                it there first, or use a different account.
+              </p>
+            )}
+            <SignInMethods connected={methods} />
           </div>
         </section>
       </div>
