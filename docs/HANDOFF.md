@@ -1,35 +1,33 @@
 # Handoff
 
-**Status:** phase 1 in progress, on branch `phase-1` (draft PR #1). Tasks 1 to 15 of the phase 1 plan are built and tested (79 tests), and CI runs on the PR.
+**Status:** phase 1 is complete and waiting to be merged. PR #1 (`phase-1` into `main`) is ready for review, CI is green and the app is live at https://usetrustguard.vercel.app. 119 tests pass.
 
-**Maintainers:** Aniruddha More (lead: backend, infra, security, CI, deploy) and Yash More (UI, design, extension).
+**Maintainers:** Aniruddha More (lead: backend, infra, security, CI, deploy) and Yash More (UI, design, extension). Each also takes some tasks in the other's area.
 
 ## Done in phase 1
-- Monorepo: `packages/core`, `packages/db`, `apps/web`
-- Target URL normalization, shared types, zod contracts, role checks (owner-only rules for the owner role)
-- Full database schema and first migration, tested on in-memory Postgres
-- Personal orgs, members, last-owner guard, invite links, hashed API tokens, rate limiter, shared intel cache, org-scoped investigation access
-- Next.js app: env validation, security headers, safe error responses, `/api/health`
-- GitHub and Google sign-in, membership guard for sessions and API tokens
-- API routes for tokens and invites, invite page with an explicit Join step
-- Design direction chosen (C for the app, B for PDF reports), tokens in `globals.css`, `docs/design.md`
-- App shell with org switcher and sign-out, settings page for members, invites and API tokens
-- Investigation assistant (RAG) added to the spec as phase 11
+- Monorepo with `packages/core`, `packages/db` and `apps/web`
+- Database schema and migrations on Supabase, row level security on every table
+- GitHub and Google sign-in, connect or disconnect either from Settings
+- Orgs, roles, invite links, org switching, API tokens (session-only account routes), rate limiting, intel cache
+- Settings page in the approved design (direction C), error page with sign-out
+- CI, deployment on Vercel, `docs/architecture.md`, `docs/deployment.md`, `docs/environment.md`
+- Independent review of the whole branch; all 15 bugs found during the phase (#2 to #16) fixed and closed with tests
 
-## Left in phase 1
-- Task 16: deploy to Vercel, `docs/architecture.md`, verify on the live site
-- Manual checks that need real accounts: sign in with both providers, invite a second account, use a token with curl, run migrations on Supabase
+## To finish phase 1
+1. Aniruddha reviews, approves and merges PR #1 with a merge commit.
+2. Yash switches Vercel's production branch back to `main` (Settings, Environments, Production, Branch Tracking).
+3. Check that CI goes green on `main`, which completes status item P1.19.
 
-## Waiting on Aniruddha (accounts are registered under his GitHub and email)
-- P0.09 Supabase project, P0.10 Vercel project, P0.12 GitHub and Google OAuth apps. Steps are in `docs/environment.md`.
-- When importing into Vercel, Yash has to let the Vercel GitHub app access this repo, since his account owns it.
-- P0.08 Oracle VM, P0.11 API keys and P0.13 Edge account are needed from phase 2 and phase 7 on.
+## Before phase 2 starts (still open in phase 0)
+- P0.08 Oracle Cloud Always Free account and ARM VM (the analysis worker runs there)
+- P0.11 VirusTotal, Google Safe Browsing and URLhaus API keys
+- P0.13 Microsoft Partner Center account for Edge Add-ons (free; needed by phase 7, but it's a phase 0 item)
 
 ## Notes for the next session
-- CI also runs on every push to the PR. The "green on main" check (P1.19) completes when the PR is merged.
-- Work in plan order and finish phase 1 to 100% before writing the phase 2 plan.
-- Commit approval is suspended for now; commit and push as each task passes.
-- Visual check of the new screens in a browser is still to do once sign-in works.
+- Work in plan order; finish each phase to 100% before writing the next phase's plan.
+- Commit approval is suspended; commit and push as each task passes. Split authorship per task with `git ca` (Aniruddha) and `git cy` (Yash).
+- Every PR and issue gets labels, assignees, a reviewer and the phase milestone.
+- Status items P2.36 and P7.28 check that the worker and extension use the shared types in `core`.
 
 ## Next step
-Phase 1, Task 16: deploy and document, once the accounts above exist.
+Merge PR #1, then write the phase 2 plan (scanner, reputation and scoring) and set up the phase 0 accounts above.
