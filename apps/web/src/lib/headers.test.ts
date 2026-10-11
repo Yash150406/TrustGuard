@@ -10,3 +10,10 @@ test("sets the core security headers", () => {
   expect(get("Content-Security-Policy")).toContain("frame-ancestors 'none'");
   expect(get("Content-Security-Policy")).toContain("default-src 'self'");
 });
+
+test("form posts may redirect to the sign-in providers", () => {
+  const formAction = get("Content-Security-Policy")!
+    .split("; ")
+    .find((d) => d.startsWith("form-action"));
+  expect(formAction).toBe("form-action 'self' https://github.com https://accounts.google.com");
+});
