@@ -4,6 +4,7 @@ import { acceptInvite, InviteError } from "@trustguard/db";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { inviteErrorMessage } from "@/lib/invite-errors";
+import { orgCookieOptions } from "@/lib/cookies";
 import { ORG_COOKIE } from "@/lib/session";
 
 // Joining needs a button press. Link previewers (Slack, mail scanners) fetch the page
@@ -25,12 +26,7 @@ export default async function Invite({ params, searchParams }: PageProps<"/invit
       const message = e instanceof InviteError ? e.message : "Something went wrong.";
       redirect(`/invite/${encodeURIComponent(code)}?error=${encodeURIComponent(message)}`);
     }
-    (await cookies()).set(ORG_COOKIE, result.orgId, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: true,
-      path: "/",
-    });
+    (await cookies()).set(ORG_COOKIE, result.orgId, orgCookieOptions());
     redirect(result.status === "joined" ? "/?joined=1" : "/");
   }
 
