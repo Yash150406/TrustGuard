@@ -15,6 +15,9 @@ export async function resolveMember(
     allowToken?: boolean;
     sessionUserId?: string;
     wantedOrgId?: string;
+    // Set by forms that were rendered for a specific org. If the active org has
+    // changed since (another tab switched it), the action is refused.
+    requiredOrgId?: string;
     action: Action;
     now: Date;
   },
@@ -37,6 +40,9 @@ export async function resolveMember(
     orgId = mine.find((m) => m.orgId === o.wantedOrgId)?.orgId ?? mine[0]?.orgId;
   }
 
+  if (o.requiredOrgId && orgId !== o.requiredOrgId) {
+    throw new AppError(409, "You switched orgs in another tab. Reload this page and try again.");
+  }
   const role = orgId ? await getRole(db, orgId, userId) : null;
   if (!orgId || !role) throw new AppError(403, "You're not a member of this org.");
   if (!can(role, o.action)) throw new AppError(403, "Your role doesn't allow this.");

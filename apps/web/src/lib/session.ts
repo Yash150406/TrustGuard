@@ -8,12 +8,13 @@ export const ORG_COOKIE = "tg_org";
 
 export async function requireMember(
   action: Action,
-  opts: { allowToken?: boolean } = {},
+  opts: { allowToken?: boolean; orgId?: string } = {},
 ): Promise<Member> {
   const bearer = (await headers()).get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
   return resolveMember(db, {
     bearer,
     allowToken: opts.allowToken,
+    requiredOrgId: opts.orgId,
     sessionUserId: bearer ? undefined : (await auth())?.user?.id,
     wantedOrgId: (await cookies()).get(ORG_COOKIE)?.value,
     action,

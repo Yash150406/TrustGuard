@@ -12,8 +12,11 @@ vi.mock("@/db", () => ({
   },
 }));
 vi.mock("@/lib/session", () => ({
-  requireMember: async () => {
+  requireMember: async (_action: string, opts?: { orgId?: string }) => {
     if (!state.member) throw new AppError(401, "Sign in to continue.");
+    if (opts?.orgId && opts.orgId !== state.member.orgId) {
+      throw new AppError(409, "You switched orgs in another tab. Reload this page and try again.");
+    }
     return state.member;
   },
 }));
@@ -31,6 +34,7 @@ vi.mock("next/headers", () => ({
 const actions = await import("./actions");
 const form = (o: Record<string, string>) => {
   const f = new FormData();
+  f.set("orgId", orgId);
   for (const [k, v] of Object.entries(o)) f.set(k, v);
   return f;
 };
@@ -137,4 +141,18 @@ test("the last sign-in method can't be disconnected", async () => {
   await linkAccount(ownerId, "google");
   const r = await actions.disconnectSignInMethod({}, form({ provider: "google" }));
   expect(r.error).toBe("Connect another sign-in method before removing this one.");
+});
+
+test("a settings form from a stale tab is refused instead of acting on another org", async () => {
+  const f = form({ userId: otherId });
+  f.set("orgId", crypto.randomUUID());
+  const r = await actions.removeMemberAction({}, f);
+  expect(r.error).toBe("You switched orgs in another tab. Reload this page and try again.");
+  expect(await getRole(state.db, orgId, otherId)).toBe("analyst");
+});
+
+test("a settings form without an org is refused", async () => {
+  const f = form({ name: "x" });
+  f.delete("orgId");
+  expect((await actions.createTokenAction({}, f)).error).toBe("Reload this page and try again.");
 });

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { canManageMember, createInviteInput, createTokenInput, isRole } from "@trustguard/core";
+import { canManageMember, createInviteInput, createTokenInput, isRole, type Action } from "@trustguard/core";
 import {
   createInvite,
   createToken,
@@ -37,8 +37,16 @@ async function run(fn: () => Promise<ActionState>): Promise<ActionState> {
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "");
 
-async function guardMemberChange(userId: string, next?: string) {
-  const me = await requireMember("investigation:read");
+// Settings forms carry the org they were rendered for, so a stale tab can't act on
+// whichever org another tab switched to.
+async function memberFor(f: FormData, action: Action) {
+  const orgId = str(f, "orgId");
+  if (!orgId) throw new AppError(400, "Reload this page and try again.");
+  return requireMember(action, { orgId });
+}
+
+async function guardMemberChange(f: FormData, userId: string, next?: string) {
+  const me = await memberFor(f, "investigation:read");
   const target = await getRole(db, me.orgId, userId);
   if (!target) throw new AppError(404, "That person isn't in this org.");
   if (next !== undefined && !isRole(next)) throw new AppError(400, "Pick a valid role.");
@@ -53,7 +61,7 @@ export async function changeRole(_prev: ActionState, f: FormData): Promise<Actio
     const userId = str(f, "userId");
     const role = str(f, "role");
     if (!isRole(role)) return { error: "Pick a valid role." };
-    const me = await guardMemberChange(userId, role);
+    const me = await guardMemberChange(f, userId, role);
     await setMemberRole(db, me.orgId, userId, role);
     revalidatePath("/settings");
     return { ok: "Role updated." };
@@ -63,7 +71,7 @@ export async function changeRole(_prev: ActionState, f: FormData): Promise<Actio
 export async function removeMemberAction(_prev: ActionState, f: FormData): Promise<ActionState> {
   return run(async () => {
     const userId = str(f, "userId");
-    const me = await guardMemberChange(userId);
+    const me = await guardMemberChange(f, userId);
     await removeMember(db, me.orgId, userId);
     revalidatePath("/settings");
     return { ok: "Member removed." };
@@ -72,7 +80,7 @@ export async function removeMemberAction(_prev: ActionState, f: FormData): Promi
 
 export async function createInviteAction(_prev: ActionState, f: FormData): Promise<ActionState> {
   return run(async () => {
-    const me = await requireMember("org:invite");
+    const me = await memberFor(f, "org:invite");
     const input = createInviteInput.safeParse({ role: str(f, "role") });
     if (!input.success) return { error: "Pick a role: admin, analyst or viewer." };
     const origin = (await headers()).get("origin");
@@ -89,7 +97,7 @@ export async function createInviteAction(_prev: ActionState, f: FormData): Promi
 
 export async function createTokenAction(_prev: ActionState, f: FormData): Promise<ActionState> {
   return run(async () => {
-    const me = await requireMember("investigation:read");
+    const me = await memberFor(f, "investigation:read");
     const rl = await hit(db, {
       key: `token-create:${me.userId}`,
       limit: 10,
@@ -107,7 +115,7 @@ export async function createTokenAction(_prev: ActionState, f: FormData): Promis
 
 export async function revokeTokenAction(_prev: ActionState, f: FormData): Promise<ActionState> {
   return run(async () => {
-    const me = await requireMember("investigation:read");
+    const me = await memberFor(f, "investigation:read");
     await revokeToken(db, { id: str(f, "id"), userId: me.userId, now: new Date() });
     revalidatePath("/settings");
     return { ok: "Token revoked." };
@@ -131,7 +139,7 @@ export async function disconnectSignInMethod(_prev: ActionState, f: FormData): P
   return run(async () => {
     const provider = str(f, "provider");
     if (!isProvider(provider)) return { error: "Pick a sign-in method." };
-    const me = await requireMember("investigation:read");
+    const me = await memberFor(f, "investigation:read");
     await unlinkSignInMethod(db, me.userId, provider);
     revalidatePath("/settings");
     return { ok: `${PROVIDERS[provider]} disconnected.` };

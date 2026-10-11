@@ -29,7 +29,7 @@ extension or script ──> /api/* with Bearer token ──> requireMember() ─
 
 ## Organizations and roles
 
-Every piece of data belongs to an org. A personal org is created on first sign-in; people join others through invite links. The active org for the dashboard is the `tg_org` cookie (falls back to the first membership). An API token is tied to the org it was created in.
+Every piece of data belongs to an org. A personal org is created on first sign-in; people join others through invite links. The active org for the dashboard is the `tg_org` cookie, falling back to the user's oldest membership. Settings forms also send the org they were rendered for, and the server refuses the action if the active org has changed since (for example, another tab switched orgs). An API token is tied to the org it was created in.
 
 | Role | Can |
 |---|---|

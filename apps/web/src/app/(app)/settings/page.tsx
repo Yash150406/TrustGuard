@@ -51,6 +51,7 @@ export default async function Settings({ searchParams }: PageProps<"/settings">)
                       <p className="truncate text-sm text-muted">{m.email}</p>
                     </div>
                     <MemberControls
+                      orgId={me.orgId}
                       userId={m.userId}
                       role={m.role}
                       assignable={assignable}
@@ -74,7 +75,7 @@ export default async function Settings({ searchParams }: PageProps<"/settings">)
                   Create a link and send it to them. They sign in, press Join and get the role you
                   picked.
                 </p>
-                <InviteForm />
+                <InviteForm orgId={me.orgId} />
               </>
             ) : (
               <p className="text-sm text-muted">Ask an admin or owner to invite people.</p>
@@ -93,7 +94,7 @@ export default async function Settings({ searchParams }: PageProps<"/settings">)
                 shown once. Revoke it if a device is lost.
               </p>
             </div>
-            <TokenForm />
+            <TokenForm orgId={me.orgId} />
             {tokens.length > 0 && (
               <ul className="divide-y divide-hair">
                 {tokens.map((t) => (
@@ -109,7 +110,7 @@ export default async function Settings({ searchParams }: PageProps<"/settings">)
                     {t.revokedAt ? (
                       <span className="text-sm text-muted">Revoked {dateFmt.format(t.revokedAt)}</span>
                     ) : (
-                      <RevokeButton id={t.id} />
+                      <RevokeButton orgId={me.orgId} id={t.id} />
                     )}
                   </li>
                 ))}
@@ -135,7 +136,7 @@ export default async function Settings({ searchParams }: PageProps<"/settings">)
                 it there first, or use a different account.
               </p>
             )}
-            <SignInMethods connected={methods} />
+            <SignInMethods orgId={me.orgId} connected={methods} />
           </div>
         </section>
       </div>

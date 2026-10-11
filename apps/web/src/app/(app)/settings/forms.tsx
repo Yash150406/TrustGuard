@@ -55,11 +55,13 @@ export function CopyField({ value, label }: { value: string; label: string }) {
 }
 
 export function MemberControls({
+  orgId,
   userId,
   role,
   assignable,
   canRemove,
 }: {
+  orgId: string;
   userId: string;
   role: RoleName;
   assignable: RoleName[];
@@ -71,6 +73,7 @@ export function MemberControls({
     <div className="grid justify-items-end gap-1">
       <div className="flex flex-wrap items-center justify-end gap-2">
         <form action={roleAction}>
+          <input type="hidden" name="orgId" value={orgId} />
           <input type="hidden" name="userId" value={userId} />
           <label className="sr-only" htmlFor={`role-${userId}`}>
             Role
@@ -92,6 +95,7 @@ export function MemberControls({
         </form>
         {canRemove && (
           <form action={removeAction}>
+            <input type="hidden" name="orgId" value={orgId} />
             <input type="hidden" name="userId" value={userId} />
             <button type="submit" className={`${ghost} py-1.5`} disabled={removePending}>
               Remove
@@ -104,11 +108,12 @@ export function MemberControls({
   );
 }
 
-export function InviteForm() {
+export function InviteForm({ orgId }: { orgId: string }) {
   const [state, action, pending] = useActionState(createInviteAction, {});
   return (
     <div className="grid grid-cols-1 gap-3">
       <form action={action} className="flex flex-wrap gap-2">
+        <input type="hidden" name="orgId" value={orgId} />
         <label className="sr-only" htmlFor="invite-role">
           Role for the new member
         </label>
@@ -132,11 +137,12 @@ export function InviteForm() {
   );
 }
 
-export function TokenForm() {
+export function TokenForm({ orgId }: { orgId: string }) {
   const [state, action, pending] = useActionState(createTokenAction, {});
   return (
     <div className="grid grid-cols-1 gap-3">
       <form action={action} className="flex flex-wrap gap-2">
+        <input type="hidden" name="orgId" value={orgId} />
         <label className="sr-only" htmlFor="token-name">
           Token name
         </label>
@@ -163,10 +169,11 @@ export function TokenForm() {
   );
 }
 
-export function RevokeButton({ id }: { id: string }) {
+export function RevokeButton({ orgId, id }: { orgId: string; id: string }) {
   const [state, action, pending] = useActionState(revokeTokenAction, {});
   return (
     <form action={action} className="grid justify-items-end gap-1">
+      <input type="hidden" name="orgId" value={orgId} />
       <input type="hidden" name="id" value={id} />
       <button type="submit" className={`${ghost} py-1.5`} disabled={pending}>
         Revoke
@@ -181,7 +188,7 @@ const METHODS = [
   { id: "google", name: "Google", Icon: GoogleIcon },
 ] as const;
 
-export function SignInMethods({ connected }: { connected: string[] }) {
+export function SignInMethods({ orgId, connected }: { orgId: string; connected: string[] }) {
   const [state, disconnect, pending] = useActionState(disconnectSignInMethod, {});
   return (
     <div className="grid grid-cols-1 gap-2">
@@ -201,6 +208,7 @@ export function SignInMethods({ connected }: { connected: string[] }) {
               </div>
               {isOn ? (
                 <form action={disconnect}>
+                  <input type="hidden" name="orgId" value={orgId} />
                   <input type="hidden" name="provider" value={id} />
                   <button
                     type="submit"

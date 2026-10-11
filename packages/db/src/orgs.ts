@@ -5,8 +5,13 @@ import { memberships, orgs, users } from "./schema";
 
 export class OrgRuleError extends Error {}
 
+// Oldest first, so "the user's first org" is the same on every request.
 export async function listMemberships(db: DB, userId: string) {
-  return db.select().from(memberships).where(eq(memberships.userId, userId));
+  return db
+    .select()
+    .from(memberships)
+    .where(eq(memberships.userId, userId))
+    .orderBy(asc(memberships.createdAt));
 }
 
 export async function getOrg(db: DB, orgId: string) {

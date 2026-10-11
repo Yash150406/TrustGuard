@@ -82,3 +82,14 @@ test("listMyOrgs returns every org a user belongs to with their role", async () 
     { orgId: team, name: "Ben's org", role: "analyst" },
   ]);
 });
+
+test("listMemberships returns the oldest membership first", async () => {
+  const a = await makeUser(db, "Asha");
+  const b = await makeUser(db, "Ben");
+  await ensurePersonalOrg(db, a);
+  const team = await ensurePersonalOrg(db, b);
+  await db
+    .insert(memberships)
+    .values({ orgId: team, userId: a.id, role: "analyst", createdAt: new Date("2020-01-01T00:00:00Z") });
+  expect((await listMemberships(db, a.id))[0]?.orgId).toBe(team);
+});

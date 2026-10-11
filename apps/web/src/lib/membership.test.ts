@@ -87,3 +87,21 @@ test("API tokens are refused unless the route allows them", async () => {
     resolveMember(db, { bearer: token, action: "investigation:read", now }),
   ).rejects.toMatchObject({ status: 403, publicMessage: "API tokens can't be used for this. Sign in to TrustGuard instead." });
 });
+
+test("an action pinned to an org fails if the active org is a different one", async () => {
+  const u = await makeUser(db);
+  const own = await ensurePersonalOrg(db, u);
+  const other = await ensurePersonalOrg(db, await makeUser(db));
+  await db.insert(memberships).values({ orgId: other, userId: u.id, role: "admin" });
+  await expect(
+    resolveMember(db, { sessionUserId: u.id, wantedOrgId: other, requiredOrgId: own, action: "investigation:read", now }),
+  ).rejects.toMatchObject({ status: 409 });
+  const ok = await resolveMember(db, {
+    sessionUserId: u.id,
+    wantedOrgId: own,
+    requiredOrgId: own,
+    action: "investigation:read",
+    now,
+  });
+  expect(ok.orgId).toBe(own);
+});
