@@ -62,3 +62,9 @@ One entry per non-obvious decision, written when it is made.
 **Why:** owner request. People want to ask follow-up questions in plain language.
 **What changes:** this narrows the earlier "no LLM" decision. The score explanation stays template-based and reproducible. The assistant is a separate Q&A layer that must cite evidence, refuse when evidence is missing, stay inside the org's data and cost $0.
 **Open:** model and embedding provider, chosen at the start of phase 11 from free options.
+
+## 2026-10-13: Two maintainers
+
+**Decided:** Aniruddha More (Aniruddha072) joins as a collaborator and project lead alongside Yash More. From now on commits are split by area: Aniruddha takes backend, infra, security, CI and deployment; Yash takes the UI, design and the browser extension. Earlier history is left as it is.
+**Why:** both are working on the project, and the history should show who did which part.
+**Also:** external accounts and API keys (Supabase, Vercel, OAuth apps, threat intel keys, Oracle, Edge Add-ons) are registered under Aniruddha's account.
