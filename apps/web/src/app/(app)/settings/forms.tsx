@@ -104,7 +104,7 @@ export function MemberControls({
 export function InviteForm() {
   const [state, action, pending] = useActionState(createInviteAction, {});
   return (
-    <div className="grid gap-3">
+    <div className="grid grid-cols-1 gap-3">
       <form action={action} className="flex flex-wrap gap-2">
         <label className="sr-only" htmlFor="invite-role">
           Role for the new member
@@ -132,7 +132,7 @@ export function InviteForm() {
 export function TokenForm() {
   const [state, action, pending] = useActionState(createTokenAction, {});
   return (
-    <div className="grid gap-3">
+    <div className="grid grid-cols-1 gap-3">
       <form action={action} className="flex flex-wrap gap-2">
         <label className="sr-only" htmlFor="token-name">
           Token name

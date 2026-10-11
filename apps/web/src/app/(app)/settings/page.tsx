@@ -16,7 +16,7 @@ export default async function Settings() {
   const canInvite = can(me.role, "org:invite");
 
   return (
-    <div className="grid gap-6">
+    <div className="grid grid-cols-1 gap-6">
       <div>
         <h1 className="font-display text-3xl font-light">Settings</h1>
         <p className="text-muted">
@@ -59,7 +59,7 @@ export default async function Settings() {
         </section>
 
         <section className="panel-shell md:col-span-5" aria-labelledby="invite-h">
-          <div className="panel-core grid content-start gap-3">
+          <div className="panel-core grid grid-cols-1 content-start gap-3">
             <h2 id="invite-h" className="font-display text-[15px] font-medium text-muted">
               Invite someone
             </h2>
@@ -78,7 +78,7 @@ export default async function Settings() {
         </section>
 
         <section className="panel-shell md:col-span-12" aria-labelledby="tokens-h">
-          <div className="panel-core grid gap-4">
+          <div className="panel-core grid grid-cols-1 gap-4">
             <div>
               <h2 id="tokens-h" className="font-display text-[15px] font-medium text-muted">
                 API tokens
