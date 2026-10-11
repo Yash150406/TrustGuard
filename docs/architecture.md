@@ -24,7 +24,7 @@ extension or script ──> /api/* with Bearer token ──> requireMember() ─
 ```
 
 - `proxy.ts` redirects signed-out visitors to `/signin` for every page except `/signin`, `/invite/*` and the API.
-- `requireMember(action)` (`apps/web/src/lib/session.ts`) works out who is calling and in which org, from either the session cookie (dashboard) or a `Bearer tg_...` token (extension, scripts), then checks the role allows the action. It throws `AppError` with 401 or 403 otherwise. The logic lives in `resolveMember()` so it can be tested without Next.
+- `requireMember(action, { allowToken })` (`apps/web/src/lib/session.ts`) works out who is calling and in which org, from the session cookie (dashboard) or, where the route allows it, a `Bearer tg_...` token (extension, scripts), then checks the role allows the action. It throws `AppError` with 401 or 403 otherwise. The logic lives in `resolveMember()` so it can be tested without Next.
 - Every org-owned query goes through `packages/db` functions that take an `orgId`. `forOrg(db, orgId)` is the entry point for investigations and grows with each phase.
 
 ## Organizations and roles
@@ -51,16 +51,16 @@ Auth.js v5 with GitHub and Google, JWT sessions, users and linked accounts store
 
 All responses are JSON. Errors look like `{ "error": "<message for people>" }`; unexpected errors return 500 with a generic message and an `id` for the logs, never the underlying exception text.
 
-Authentication: a session cookie from the dashboard, or `Authorization: Bearer tg_<token>` from Settings, API tokens.
+Authentication: a session cookie from the dashboard. API tokens (`Authorization: Bearer tg_<token>`) only work on routes that opt in with `requireMember(action, { allowToken: true })`; everything that manages the account (tokens, invites, members) is session-only, so a stolen token can't create more access. No route accepts tokens yet. The extension's endpoints will be the first, in later phases.
 
 | Method | Path | Auth | Input | Success | Errors |
 |---|---|---|---|---|---|
 | GET | `/api/health` | none | none | `200 { "ok": true }` | none |
 | GET, POST | `/api/auth/*` | none | Auth.js endpoints (sign-in, callback, session, csrf, providers, sign-out) | Auth.js responses | Auth.js errors |
-| GET | `/api/tokens` | any member | none | `200 [{ id, name, prefix, lastUsedAt, revokedAt, createdAt }]` for the caller's tokens. The token itself and its hash are never returned. | 401, 403 |
-| POST | `/api/tokens` | any member | `{ "name": string, 1-60 chars after trimming }` | `201 { id, token, prefix }`. `token` is shown only in this response. | 400 bad name or JSON, 401, 403, 429 after 10 tokens per user per hour |
-| DELETE | `/api/tokens/:id` | any member | none | `204`. Only the caller's own token is revoked. | 401, 403 |
-| POST | `/api/invites` | admin or owner | `{ "role": "admin" \| "analyst" \| "viewer" }` | `201 { "url": "<origin>/invite/<code>" }` | 400 bad role, 401, 403 |
+| GET | `/api/tokens` | any member, session only | none | `200 [{ id, name, prefix, lastUsedAt, revokedAt, createdAt }]` for the caller's tokens. The token itself and its hash are never returned. | 401, 403 |
+| POST | `/api/tokens` | any member, session only | `{ "name": string, 1-60 chars after trimming }` | `201 { id, token, prefix }`. `token` is shown only in this response. | 400 bad name or JSON, 401, 403, 429 after 10 tokens per user per hour |
+| DELETE | `/api/tokens/:id` | any member, session only | none | `204`. Only the caller's own token is revoked. | 401, 403 |
+| POST | `/api/invites` | admin or owner, session only | `{ "role": "admin" \| "analyst" \| "viewer" }` | `201 { "url": "<origin>/invite/<code>" }` | 400 bad role, 401, 403 |
 
 Request bodies are validated with the zod schemas in `packages/core/src/schemas.ts`. Malformed JSON is a 400, not a 500.
 

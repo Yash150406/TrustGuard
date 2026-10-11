@@ -10,8 +10,10 @@ vi.mock("@/db", () => ({
     return state.db;
   },
 }));
+const calls = vi.hoisted(() => [] as { action: string; opts?: { allowToken?: boolean } }[]);
 vi.mock("@/lib/session", () => ({
-  requireMember: async (action: string) => {
+  requireMember: async (action: string, opts?: { allowToken?: boolean }) => {
+    calls.push({ action, opts });
     if (!state.member) throw new AppError(401, "Sign in to continue.");
     if (action === "org:invite" && state.member.role === "viewer") {
       throw new AppError(403, "Your role doesn't allow this.");
@@ -101,4 +103,17 @@ test("invite codes from the db layer are url-safe", async () => {
     now: new Date(),
   });
   expect(code).toMatch(/^[\w-]+$/);
+});
+
+test("token and invite routes never accept API tokens", async () => {
+  calls.length = 0;
+  await tokens.GET();
+  await tokens.POST(post({ name: "x" }));
+  const { id } = await (await tokens.POST(post({ name: "y" }))).json();
+  await tokenById.DELETE(new Request("http://localhost/x", { method: "DELETE" }), {
+    params: Promise.resolve({ id }),
+  });
+  await invites.POST(post({ role: "viewer" }));
+  expect(calls.length).toBeGreaterThan(0);
+  expect(calls.every((c) => !c.opts?.allowToken)).toBe(true);
 });

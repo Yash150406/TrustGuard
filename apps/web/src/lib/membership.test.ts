@@ -14,7 +14,7 @@ test("a valid API token resolves to its user and org", async () => {
   const u = await makeUser(db);
   const orgId = await ensurePersonalOrg(db, u);
   const { token } = await createToken(db, { userId: u.id, orgId, name: "ext" });
-  const m = await resolveMember(db, { bearer: token, action: "investigation:create", now });
+  const m = await resolveMember(db, { bearer: token, allowToken: true, action: "investigation:create", now });
   expect(m).toEqual({ userId: u.id, orgId, role: "owner" });
 });
 
@@ -24,7 +24,7 @@ test("a revoked token gets 401", async () => {
   const { id, token } = await createToken(db, { userId: u.id, orgId, name: "ext" });
   await revokeToken(db, { id, userId: u.id, now });
   await expect(
-    resolveMember(db, { bearer: token, action: "investigation:read", now }),
+    resolveMember(db, { bearer: token, allowToken: true, action: "investigation:read", now }),
   ).rejects.toMatchObject({ status: 401 });
 });
 
@@ -77,4 +77,13 @@ test("a signed-in user with no org gets 403", async () => {
   await expect(
     resolveMember(db, { sessionUserId: u.id, action: "investigation:read", now }),
   ).rejects.toMatchObject({ status: 403 });
+});
+
+test("API tokens are refused unless the route allows them", async () => {
+  const u = await makeUser(db);
+  const orgId = await ensurePersonalOrg(db, u);
+  const { token } = await createToken(db, { userId: u.id, orgId, name: "ext" });
+  await expect(
+    resolveMember(db, { bearer: token, action: "investigation:read", now }),
+  ).rejects.toMatchObject({ status: 403, publicMessage: "API tokens can't be used for this. Sign in to TrustGuard instead." });
 });

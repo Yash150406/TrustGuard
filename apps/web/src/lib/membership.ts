@@ -6,13 +6,25 @@ export type Member = { userId: string; orgId: string; role: Role };
 
 // Works for both callers: the extension (Bearer token, org fixed by the token)
 // and the dashboard (session cookie, org picked via the tg_org cookie).
+// Tokens only work where a route opts in with allowToken. Account actions (tokens,
+// invites, members) stay session-only so a stolen token can't mint more access.
 export async function resolveMember(
   db: DB,
-  o: { bearer?: string; sessionUserId?: string; wantedOrgId?: string; action: Action; now: Date },
+  o: {
+    bearer?: string;
+    allowToken?: boolean;
+    sessionUserId?: string;
+    wantedOrgId?: string;
+    action: Action;
+    now: Date;
+  },
 ): Promise<Member> {
   let userId: string;
   let orgId: string | undefined;
 
+  if (o.bearer && !o.allowToken) {
+    throw new AppError(403, "API tokens can't be used for this. Sign in to TrustGuard instead.");
+  }
   if (o.bearer) {
     const t = await verifyToken(db, o.bearer, o.now);
     if (!t) throw new AppError(401, "This API token is invalid or has been revoked.");
