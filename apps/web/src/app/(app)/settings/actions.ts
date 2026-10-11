@@ -24,7 +24,7 @@ import {
 } from "@trustguard/db";
 import { signIn } from "@/auth";
 import { db } from "@/db";
-import { AppError } from "@/lib/errors";
+import { AppError, logError } from "@/lib/errors";
 import { requireMember } from "@/lib/session";
 
 export type ActionState = { ok?: string; error?: string; url?: string; token?: string };
@@ -37,7 +37,7 @@ async function run(fn: () => Promise<ActionState>): Promise<ActionState> {
   } catch (e) {
     if (e instanceof AppError) return { error: e.publicMessage };
     if (e instanceof OrgRuleError || e instanceof SignInMethodError) return { error: e.message };
-    console.error("settings action failed", e instanceof Error ? e.name : "UnknownError");
+    logError(crypto.randomUUID(), e);
     return { error: "Something went wrong. Try again in a moment." };
   }
 }
