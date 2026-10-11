@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/auth";
 import { GitHubIcon, GoogleIcon } from "@/components/provider-icons";
+import { safeRedirectPath } from "@/lib/redirect";
 
 const MESSAGES: Record<string, string> = {
   OAuthAccountNotLinked:
@@ -11,8 +12,9 @@ const MESSAGES: Record<string, string> = {
 export default async function SignIn({ searchParams }: PageProps<"/signin">) {
   const params = await searchParams;
   const error = typeof params.error === "string" ? params.error : undefined;
-  const callbackUrl = typeof params.callbackUrl === "string" ? params.callbackUrl : "/";
-  const redirectTo = callbackUrl.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/";
+  const redirectTo = safeRedirectPath(
+    typeof params.callbackUrl === "string" ? params.callbackUrl : undefined,
+  );
 
   // A signed-in user only lands here when connecting another sign-in method failed.
   if ((await auth())?.user) redirect(error ? "/settings?link_error=1" : redirectTo);
