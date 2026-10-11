@@ -1,4 +1,4 @@
-import { and, asc, count, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import type { Role } from "@trustguard/core";
 import type { DB } from "./client";
 import { memberships, orgs, users } from "./schema";
@@ -65,32 +65,44 @@ export async function ensurePersonalOrg(db: DB, user: { id: string; name: string
   });
 }
 
-async function ownerCount(db: DB, orgId: string) {
-  const [r] = await db
-    .select({ n: count() })
-    .from(memberships)
-    .where(and(eq(memberships.orgId, orgId), eq(memberships.role, "owner")));
-  return r?.n ?? 0;
-}
-
-// ponytail: check-then-write, two owners demoting each other at the same instant could both pass; lock the org row if that ever matters
-async function guardLastOwner(db: DB, orgId: string, userId: string) {
-  if ((await getRole(db, orgId, userId)) === "owner" && (await ownerCount(db, orgId)) <= 1) {
-    throw new OrgRuleError("An org needs at least one owner. Make someone else an owner first.");
-  }
+// Runs a membership change inside a transaction that locks the org's owner rows,
+// so two owners demoting or removing each other at the same moment can't both pass
+// the "at least one owner" check: the second waits, re-reads and is refused.
+// (PGlite tests run one query at a time, so the race itself relies on Postgres row locks.)
+async function withOwnerGuard(
+  db: DB,
+  orgId: string,
+  userId: string,
+  losesOwner: boolean,
+  change: (tx: DB) => Promise<unknown>,
+) {
+  await db.transaction(async (txRaw) => {
+    const tx = txRaw as unknown as DB;
+    const owners = await tx
+      .select({ userId: memberships.userId })
+      .from(memberships)
+      .where(and(eq(memberships.orgId, orgId), eq(memberships.role, "owner")))
+      .for("update");
+    if (losesOwner && owners.length <= 1 && owners.some((o) => o.userId === userId)) {
+      throw new OrgRuleError("An org needs at least one owner. Make someone else an owner first.");
+    }
+    await change(tx);
+  });
 }
 
 export async function setMemberRole(db: DB, orgId: string, userId: string, role: Role) {
-  if (role !== "owner") await guardLastOwner(db, orgId, userId);
-  await db
-    .update(memberships)
-    .set({ role })
-    .where(and(eq(memberships.orgId, orgId), eq(memberships.userId, userId)));
+  await withOwnerGuard(db, orgId, userId, role !== "owner", (tx) =>
+    tx
+      .update(memberships)
+      .set({ role })
+      .where(and(eq(memberships.orgId, orgId), eq(memberships.userId, userId))),
+  );
 }
 
 export async function removeMember(db: DB, orgId: string, userId: string) {
-  await guardLastOwner(db, orgId, userId);
-  await db
-    .delete(memberships)
-    .where(and(eq(memberships.orgId, orgId), eq(memberships.userId, userId)));
+  await withOwnerGuard(db, orgId, userId, true, (tx) =>
+    tx
+      .delete(memberships)
+      .where(and(eq(memberships.orgId, orgId), eq(memberships.userId, userId))),
+  );
 }
