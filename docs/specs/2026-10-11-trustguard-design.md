@@ -84,6 +84,7 @@ All run on the worker. An unavailable source is never treated as safe and is nev
 ## 5. Accounts, orgs, quotas, data
 
 - Auth.js with GitHub and Google OAuth only. No email login (sending to arbitrary addresses needs a paid domain).
+- One sign-in method per email on first sign-in, so someone can't take over an account by adding its email to their own GitHub. Signed-in users can connect the other provider from Settings (linked to the current user) and disconnect one as long as another remains.
 - Each user gets a personal org on signup. Invites are copyable links. Roles: owner, admin, analyst, viewer.
 - Every org-owned table has `org_id`. All queries go through one data-access layer that requires an org id. Tests prove cross-org reads fail.
 - Shared `intel_cache` holds raw public-source responses keyed by source and target. Investigations, watchlists, incidents and artifacts are private per org.
