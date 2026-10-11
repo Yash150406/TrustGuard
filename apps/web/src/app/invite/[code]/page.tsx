@@ -3,14 +3,8 @@ import { redirect } from "next/navigation";
 import { acceptInvite, InviteError } from "@trustguard/db";
 import { auth } from "@/auth";
 import { db } from "@/db";
+import { inviteErrorMessage } from "@/lib/invite-errors";
 import { ORG_COOKIE } from "@/lib/session";
-
-// Only messages we wrote ourselves are shown; anything else in ?error is ignored.
-const KNOWN_ERRORS = new Set([
-  "This invite link isn't valid.",
-  "This invite has already been used.",
-  "This invite has expired.",
-]);
 
 // Joining needs a button press. Link previewers (Slack, mail scanners) fetch the page
 // with GET, and a single-use invite would be gone before the person ever clicked it.
@@ -40,7 +34,7 @@ export default async function Invite({ params, searchParams }: PageProps<"/invit
     redirect(result.status === "joined" ? "/?joined=1" : "/");
   }
 
-  const shown = typeof error === "string" && KNOWN_ERRORS.has(error) ? error : null;
+  const shown = inviteErrorMessage(typeof error === "string" ? error : undefined);
   return (
     <main className="risk-glow grid min-h-dvh place-items-center px-4">
       <div className="panel-shell w-full max-w-sm">
@@ -48,7 +42,7 @@ export default async function Invite({ params, searchParams }: PageProps<"/invit
           <h1 className="font-display text-2xl font-light">Join an org on TrustGuard</h1>
           {shown ? (
             <p role="alert" className="text-sm text-high">
-              {shown} Ask whoever sent it for a new link.
+              {shown}
             </p>
           ) : (
             <form action={join} className="grid gap-4">
