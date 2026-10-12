@@ -26,7 +26,7 @@ Environment variables: the six listed in [environment.md](environment.md), with 
 
 ### Production branch during a phase
 
-Work for each phase happens on a `phase-N` branch and only reaches `main` when the phase is done. Before the first merge, `main` didn't contain the app at all, so production temporarily tracked `phase-1` (Settings, Environments, Production, Branch Tracking). After a phase PR is merged, production tracks `main` again.
+Work for each phase happens on a `phase-N` branch and only reaches `main` when the phase is done. Production tracks `main`; each `phase-N` branch gets Vercel preview deployments. Before phase 1 was merged, `main` didn't contain the app at all, so production temporarily tracked `phase-1` (Settings, Environments, Production, Branch Tracking) and was switched back to `main` after the merge.
 
 Vercel's Root Directory picker on the import screen only lists folders that exist on the default branch. If the folder isn't on `main` yet, import with the default root, let the first build fail, then type `apps/web` into Settings, Build and Deployment, Root Directory, which accepts any path.
 

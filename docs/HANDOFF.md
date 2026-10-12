@@ -1,6 +1,6 @@
 # Handoff
 
-**Status:** phase 1 is complete and waiting to be merged. PR #1 (`phase-1` into `main`) is ready for review, CI is green and the app is live at https://usetrustguard.vercel.app. 119 tests pass.
+**Status:** phase 1 is complete and merged (PR #1). Production on Vercel serves `main` at https://usetrustguard.vercel.app. CI is green on `main` and 119 tests pass. Phase 2 hasn't started.
 
 **Maintainers:** Aniruddha More (lead: backend, infra, security, CI, deploy) and Yash More (UI, design, extension). Each also takes some tasks in the other's area.
 
@@ -12,11 +12,6 @@
 - Settings page in the approved design (direction C), error page with sign-out
 - CI, deployment on Vercel, `docs/architecture.md`, `docs/deployment.md`, `docs/environment.md`
 - Independent review of the whole branch; all 15 bugs found during the phase (#2 to #16) fixed and closed with tests
-
-## To finish phase 1
-1. Aniruddha reviews, approves and merges PR #1 with a merge commit.
-2. Yash switches Vercel's production branch back to `main` (Settings, Environments, Production, Branch Tracking).
-3. Check that CI goes green on `main`, which completes status item P1.19.
 
 ## Before phase 2 starts (still open in phase 0)
 - P0.08 Oracle Cloud Always Free account and ARM VM (the analysis worker runs there)
@@ -30,4 +25,4 @@
 - Status items P2.36 and P7.28 check that the worker and extension use the shared types in `core`.
 
 ## Next step
-Merge PR #1, then write the phase 2 plan (scanner, reputation and scoring) and set up the phase 0 accounts above.
+Set up the three phase 0 accounts above, then write the phase 2 plan (scanner, reputation and scoring) on a new `phase-2` branch with a draft PR.
