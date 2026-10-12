@@ -150,8 +150,8 @@ TrustGuard is not a replacement for VirusTotal, an EDR, a SIEM or a browser sand
 
 ## Maintainers
 
-- **Aniruddha More** ([@Aniruddha072](https://github.com/Aniruddha072)), project lead: backend, infrastructure, security
-- **Yash More** ([@Yash150406](https://github.com/Yash150406)): interface, design, browser extension
+- **Aniruddha More** ([@Aniruddha072](https://github.com/Aniruddha072))
+- **Yash More** ([@Yash150406](https://github.com/Yash150406))
 
 ## License
 
